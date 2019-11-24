@@ -1,28 +1,4 @@
 $(function() {
-	
-	$('.s7sbp--marketplace--catalog-element-detail-product--slides .wrapp_thumbs').find('.thumbs').flexslider({
-		animation: "slide",
-		selector: ".slides_block > li",
-		slideshow: false,
-		animationSpeed: 600,
-		directionNav: true,
-		controlNav: false,
-		pauseOnHover: true,
-		itemWidth: 54,
-		itemMargin: 10,
-		animationLoop: true,
-		controlsContainer: ".thumbs_navigation",
-	});
-	$('.s7sbp--marketplace--catalog-element-detail-product--slides.flex.flexslider').flexslider({
-		animation: "slide",
-		selector: ".slides > li",
-		slideshow: false,
-		slideshowSpeed: 10000,
-		animationSpeed: 600,
-		directionNav: false,
-		pauseOnHover: true,
-		animationLoop: false,
-	});
 
 	var inputQuantity = $('.s7sbp--marketplace--catalog-element-detail-product input[name="quantity"]');
 
