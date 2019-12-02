@@ -1,8 +1,9 @@
 <?
-use Bitrix\Main\Loader;
+use Bitrix\Main\Loader,
+    Bitrix\Main\Localization\Loc;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
-
+Loc::loadLanguageFile(__FILE__);
 Loader::includeModule("iblock");
 
 /**
@@ -14,6 +15,14 @@ Loader::includeModule("iblock");
  */
 
 $result["MARKET_LIST"] = array();
+$result["SPACE"] = array(
+    "TOTAL" => array(
+        "LHW_ctn" => 0,
+        "WEIGHT" => 0
+    ),
+    "NUMBER_ROUND" => 2
+);
+
 
 foreach ($this->basketItems as $arItem)
 {
@@ -39,6 +48,27 @@ foreach ($this->basketItems as $arItem)
         }
 
     }
+
+    // space for item
+    $result["SPACE"][$arItem["ID"]] = array(
+        "DIMENSIONS" => unserialize($arItem["~DIMENSIONS"]),
+        ///"PROPERTY_Master_CTN_SIZE" => $arItem["PROPERTY_L_ctn_VALUE"] *  $arItem["PROPERTY_H_ctn_VALUE"] * $arItem["PROPERTY_W_ctn_VALUE"] * $arItem["QUANTITY"],
+        "PROPERTY_Master_CTN_SIZE" => $arItem["PROPERTY_L_ctn_VALUE"] *  $arItem["PROPERTY_H_ctn_VALUE"] * $arItem["PROPERTY_W_ctn_VALUE"],
+    );
+
+    $result["SPACE"][$arItem["ID"]]["DIMENSIONS"] = $result["SPACE"][$arItem["ID"]]["DIMENSIONS"]["WIDTH"] *
+        $result["SPACE"][$arItem["ID"]]["DIMENSIONS"]["HEIGHT"] *
+        $result["SPACE"][$arItem["ID"]]["DIMENSIONS"]["LENGTH"] * 0.000001;
+
+    $result["SPACE"][$arItem["ID"]]["PROPERTY_LHW_ctn"] = round($result["SPACE"][$arItem["ID"]]["DIMENSIONS"], $result["SPACE"]["NUMBER_ROUND"]);
+
+    // total space
+    $result["SPACE"]["TOTAL"]["LHW_ctn"] += round($result["SPACE"][$arItem["ID"]]["DIMENSIONS"] * $arItem["QUANTITY"], $result["SPACE"]["NUMBER_ROUND"]);
+    $result["SPACE"]["TOTAL"]["WEIGHT"] += round($arItem["PROPERTY_WEIGHT_VALUE"] * $arItem["QUANTITY"], $result["SPACE"]["NUMBER_ROUND"]);
+
+
+
+
 }
 
 // CURRENCIES FORMAT
