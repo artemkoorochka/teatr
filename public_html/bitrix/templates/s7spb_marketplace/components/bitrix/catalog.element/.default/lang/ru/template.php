@@ -1,30 +1,32 @@
 <?
 $MESS["RATING-title"] = "Рейтинг:";
 $MESS["SHARE_BUTTON"] = "Поделиться";
+$MESS["PRODUCT_NONE_VALUE"] = "значение не задано";
+$MESS["PRODUCT_FIELD_ID"] = "ID номер на портале";
 $MESS["PRODUCT_ABOUT_TITLE"] = "Коротко о товаре";
 $MESS["PRODUCT_PROPERTY_SHOW_ALL"] = "Все характеристики";
+$MESS["PRODUCT_PROPERTY_MOQ"] = "MOQ - COUNT CTN";
+$MESS["PRODUCT_PROPERTY_PRODACTION_DAYS"] = "Срок производства - COUNT дней";
 $MESS["PRODUCT_STORE_TITLE"] = "Магазин:";
 $MESS["PRODUCT_STORE_REVIEW_TEXT"] = "о магазине";
-
-$MESS["PRODUCT_ADD_TO_BASKET"] = "Добавить в корзину";
+$MESS["PRODUCT_ADD_TO_BASKET"] = "В корзину";
 $MESS["PRODUCT_ADD_TO_BASKET_IN_BASKET"] = "В корзине";
-
 $MESS["PRODUCT_TABS_ABOUT"] = "Описание товара";
+$MESS["PRODUCT_TABS_VIDEO"] = "Видео";
 $MESS["PRODUCT_TABS_REVIEW"] = "Отзывы";
 $MESS["PRODUCT_TABS_DELLIVERY"] = "Доставка и оплата";
 $MESS["PRODUCT_TABS_GARANTY"] = "Гарантии продавца";
-
 $MESS["PRODUCT_TABS_ABOUT_TITLE"] = "Описание";
 $MESS["PRODUCT_TABS_ABOUT_TITLE_PROPERTY"] = "Общие характеристики";
-
+$MESS["PRODUCT_ORDER_ITOG"] = "Итого заказано";
+$MESS["PRODUCT_ORDER_ITOG_PCS"] = "Итого PCS";
+$MESS["PRODUCT_ORDER_ITOG_PCS_QUANT"] = "штук";
+$MESS["PRODUCT_ORDER_ITOG_CTN"] = "Итого CBM";
+$MESS["PRODUCT_ORDER_ITOG_CTN_QUANT"] = "м<sup>3</sup>";
 $MESS["HIDE_FORM"] = "Свернуть форму";
 $MESS["ADD_REVIEW"] = "Оставить отзыв";
-
-
-
 $MESS["CATALOG_ADD_TO_BASKET"] = "В корзину";
 $MESS["CATALOG_ADDED_TO_BASKET"] = "В корзине";
-
 $MESS["CATALOG_IZB"] = "В избранное";
 $MESS["CATALOG_IZB_IN"] = "В избранном";
 $MESS["CATALOG_ADD_TO_BASKET_IN"] = "В корзину";
@@ -112,4 +114,7 @@ $MESS["SUBSCRIBE_DESCRIPTION"] = "Подписка";
 $MESS["ORDER_DESCRIPTION"] = "Заказ";
 $MESS["BUY_BTN"] = "Купить";
 $MESS["MORE_TEXT_BOTTOM"] = "Подробнее";
+$MESS["CALCULATOR_ITOG"] = "Сумма";
+$MESS["PRODUCT_PRICE_QUANT"] = "Цена за штуку";
+$MESS["PRODUCT_WARNING"] = "Предупреждение";
 ?>

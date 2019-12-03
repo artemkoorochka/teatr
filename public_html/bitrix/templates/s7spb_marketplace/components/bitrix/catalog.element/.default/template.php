@@ -1,173 +1,123 @@
-<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
+<?
+/**
+ * @var array $arParams
+ * @var array $arResult
+ * @var CBitrixComponentTemplate $this
+ */
+
+use Bitrix\Main\Localization\Loc;
+if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+Loc::loadLanguageFile(__FILE__);
+$MOQ = $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] ? $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] : 1;
+?>
 
 <div class="s7sbp--marketplace--catalog-element-detail">
 	
 	<div class="s7sbp--marketplace--catalog-element-detail-product">
 		<div class="s7sbp--marketplace--catalog-element-detail-product--left">
-			<div class="s7sbp--marketplace--catalog-element-detail-product--slides">
-			<?
-				reset($arResult['MORE_PHOTO']);
-				$arFirstPhoto = current($arResult['MORE_PHOTO']);
-			?>
-				<div class="slides">
-					<?if($arResult["MORE_PHOTO"]):
-						$bIsOneImage = count($arResult["MORE_PHOTO"]) <= 1;
-					?>
-						<ul>
-							<?foreach($arResult["MORE_PHOTO"] as $i => $arImage):
-								$isEmpty = ($arImage["SMALL"]["src"] ? false : true );
-								$alt = $arImage["ALT"];
-								$title = $arImage["TITLE"];
-							?>
-								<li id="photo-<?=$i?>" <?=(!$i ? 'class="current"' : 'style="display: none;"')?>>
-									<?if(!$isEmpty):?>
-										<a href="<?=$arImage["BIG"]["src"]?>" <?=($bIsOneImage ? '' : 'data-fancybox-group="item_slider"')?> class="popup_link fancy" title="<?=$title;?>">
-											<img  src="<?=$arImage["SMALL"]["src"]?>" <?=($viewImgType=="MAGNIFIER" ? "class='zoom_picture'" : "");?> <?=($viewImgType=="MAGNIFIER" ? 'xoriginal="'.$arImage["BIG"]["src"].'" xpreview="'.$arImage["THUMB"]["src"].'"' : "");?> alt="<?=$alt;?>" title="<?=$title;?>"<?=(!$i ? ' itemprop="image"' : '')?>/>
-										</a>
-									<?else:?>
-										<img  src="<?=$arImage["SRC"]?>" alt="<?=$alt;?>" title="<?=$title;?>" />
-									<?endif;?>
-								</li>
-							<?endforeach;?>
-						</ul>
-					<?endif;?>
-				</div>
-				<?/*thumbs*/?>
-				<?if(count($arResult["MORE_PHOTO"]) > 1):?>
-					<div class="wrapp_thumbs xzoom-thumbs">
-						<div class="thumbs flexslider" data-plugin-options='{"animation": "slide", "selector": ".slides_block > li", "directionNav": true, "itemMargin":10, "itemWidth": 54, "controlsContainer": ".thumbs_navigation", "controlNav" :false, "animationLoop": true, "slideshow": false}' style="max-width:<?=ceil(((count($arResult['MORE_PHOTO']) <= 4 ? count($arResult['MORE_PHOTO']) : 4) * 64) - 10)?>px;">
-							<ul class="slides_block" id="thumbs">
-								<?foreach($arResult["MORE_PHOTO"]as $i => $arImage):?>
-									<li <?=(!$i ? 'class="current"' : '')?> data-big_img="<?=$arImage["BIG"]["src"]?>" data-small_img="<?=$arImage["SMALL"]["src"]?>">
-										<span><img class="xzoom-gallery" width="50" xpreview="<?=$arImage["THUMB"]["src"];?>" src="<?=$arImage["THUMB"]["src"]?>" alt="<?=$arImage["ALT"];?>" title="<?=$arImage["TITLE"];?>" /></span>
-									</li>
-								<?endforeach;?>
-							</ul>
-							<span class="thumbs_navigation custom_flex"></span>
-						</div>
-					</div>
-					<script>
-						$(document).ready(function(){
-							$('.s7sbp--marketplace--catalog-element-detail-product--slides .thumbs li').first().addClass('current');
-							$('.s7sbp--marketplace--catalog-element-detail-product--slides .thumbs .slides_block').delegate('li:not(.current)', 'click', function(){
-								var slider_wrapper = $(this).parents('.s7sbp--marketplace--catalog-element-detail-product--slides'),
-									index = $(this).index();
-								$(this).addClass('current').siblings().removeClass('current')
-								slider_wrapper.find('.slides li').removeClass('current').hide();
-								slider_wrapper.find('.slides li:eq('+index+')').addClass('current').show();
-							});
-						})
-					</script>
-				<?endif;?>
-			</div>
-			<?/*mobile*/?>
-			<?if(!$showCustomOffer || empty($arResult['OFFERS_PROP'])):?>
-				<div class="s7sbp--marketplace--catalog-element-detail-product--slides flex flexslider" data-plugin-options='{"animation": "slide", "directionNav": false, "controlNav": true, "animationLoop": false, "slideshow": true, "slideshowSpeed": 10000, "animationSpeed": 600}'>
-					<ul class="slides">
-						<?if($arResult["MORE_PHOTO"]){
-							foreach($arResult["MORE_PHOTO"] as $i => $arImage){?>
-								<?$isEmpty=($arImage["SMALL"]["src"] ? false : true );?>
-								<li id="mphoto-<?=$i?>" <?=(!$i ? 'class="current"' : 'style="display: none;"')?>>
-									<?
-									$alt = $arImage["ALT"];
-									$title = $arImage["TITLE"];
-									?>
-									<?if(!$isEmpty){?>
-										<a href="<?=$arImage["BIG"]["src"]?>" data-fancybox-group="item_slider_flex" class="fancy" title="<?=$title;?>" >
-											<img src="<?=$arImage["SMALL"]["src"]?>" alt="<?=$alt;?>" title="<?=$title;?>" />
-										</a>
-									<?}else{?>
-										<img  src="<?=$arImage["SRC"];?>" alt="<?=$alt;?>" title="<?=$title;?>" />
-									<?}?>
-								</li>
-							<?}
-						}?>
-					</ul>
-				</div>
-			<?else:?>
-				<div class="item_slider flex"></div>
-			<?endif;?>
+            <div class="s7sbp--marketplace--catalog-element-detail-product--slides">
+                <?
+                reset($arResult['MORE_PHOTO']);
+                $arFirstPhoto = current($arResult['MORE_PHOTO']);
+                ?>
+                <div class="slides">
+                    <?if($arResult["MORE_PHOTO"]):
+                        $bIsOneImage = count($arResult["MORE_PHOTO"]) <= 1;
+                        ?>
+                        <ul>
+                            <?foreach($arResult["MORE_PHOTO"] as $i => $arImage):
+                                $isEmpty = ($arImage["SMALL"]["src"] ? false : true );
+                                $alt = $arImage["ALT"];
+                                $title = $arImage["TITLE"];
+                                ?>
+                                <li id="photo-<?=$i?>" <?=(!$i ? 'class="current"' : 'style="display: none;"')?>>
+                                    <?if(!$isEmpty):?>
+                                        <a href="<?=$arImage["BIG"]["src"]?>" <?=($bIsOneImage ? '' : 'data-fancybox-group="item_slider"')?> class="popup_link fancy" title="<?=$title;?>">
+                                            <img  src="<?=$arImage["SMALL"]["src"]?>" <?=($viewImgType=="MAGNIFIER" ? "class='zoom_picture'" : "");?> <?=($viewImgType=="MAGNIFIER" ? 'xoriginal="'.$arImage["BIG"]["src"].'" xpreview="'.$arImage["THUMB"]["src"].'"' : "");?> alt="<?=$alt;?>" title="<?=$title;?>"<?=(!$i ? ' itemprop="image"' : '')?>/>
+                                        </a>
+                                    <?else:?>
+                                        <img  src="<?=$arImage["SRC"]?>" alt="<?=$alt;?>" title="<?=$title;?>" />
+                                    <?endif;?>
+                                </li>
+                            <?endforeach;?>
+                        </ul>
+                    <?endif;?>
+                </div>
+                <?/*thumbs*/?>
+                <?if(count($arResult["MORE_PHOTO"]) > 1):?>
+                    <div class="wrapp_thumbs xzoom-thumbs">
+                        <div class="thumbs flexslider" data-plugin-options='{"animation": "slide", "selector": ".slides_block > li", "directionNav": true, "itemMargin":10, "itemWidth": 54, "controlsContainer": ".thumbs_navigation", "controlNav" :false, "animationLoop": true, "slideshow": false}' style="max-width:<?=ceil(((count($arResult['MORE_PHOTO']) <= 4 ? count($arResult['MORE_PHOTO']) : 4) * 64) - 10)?>px;">
+                            <ul class="slides_block" id="thumbs">
+                                <?foreach($arResult["MORE_PHOTO"]as $i => $arImage):?>
+                                    <li <?=(!$i ? 'class="current"' : '')?> data-big_img="<?=$arImage["BIG"]["src"]?>" data-small_img="<?=$arImage["SMALL"]["src"]?>">
+                                        <span><img class="xzoom-gallery" width="50" xpreview="<?=$arImage["THUMB"]["src"];?>" src="<?=$arImage["THUMB"]["src"]?>" alt="<?=$arImage["ALT"];?>" title="<?=$arImage["TITLE"];?>" /></span>
+                                    </li>
+                                <?endforeach;?>
+                            </ul>
+                            <span class="thumbs_navigation custom_flex"></span>
+                        </div>
+                    </div>
+                    <script>
+                        $(document).ready(function(){
+                            $('.s7sbp--marketplace--catalog-element-detail-product--slides .thumbs li').first().addClass('current');
+                            $('.s7sbp--marketplace--catalog-element-detail-product--slides .thumbs .slides_block').delegate('li:not(.current)', 'click', function(){
+                                var slider_wrapper = $(this).parents('.s7sbp--marketplace--catalog-element-detail-product--slides'),
+                                    index = $(this).index();
+                                $(this).addClass('current').siblings().removeClass('current')
+                                slider_wrapper.find('.slides li').removeClass('current').hide();
+                                slider_wrapper.find('.slides li:eq('+index+')').addClass('current').show();
+                            });
+                        })
+                    </script>
+                <?endif;?>
+            </div>
 		</div>
+
 		<div class="s7sbp--marketplace--catalog-element-detail-product--right">
 			<h1><span class="s7sbp--marketplace--catalog-element-detail-product--title"><?=$arResult["NAME"]?></span></h1>
-			<div class="s7sbp--marketplace--catalog-element-detail-product--brand" style="background-image: url(/upload/xiaomi.png)"></div>
 
 			<div class="s7sbp--marketplace--catalog-element-detail-product--header-line">
-				<div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item">			
-					<?$frame = $this->createFrame('dv_'.$arResult["ID"])->begin('');?>
-						<span class="iblock-vote-title"><?=GetMessage("RATING-title")?></span>
-						<div class="rating">
-							<?$APPLICATION->IncludeComponent(
-								"bitrix:iblock.vote",
-								"product_rating",
-								Array(
-									"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
-									"IBLOCK_ID" => $arResult["IBLOCK_ID"],
-									"ELEMENT_ID" => $arResult["ID"],
-									"MAX_VOTE" => 5,
-									"VOTE_NAMES" => array(),
-									"CACHE_TYPE" => $arParams["CACHE_TYPE"],
-									"CACHE_TIME" => $arParams["CACHE_TIME"],
-									"DISPLAY_AS_RATING" => 'vote_avg'
-								),
-								$component, array("HIDE_ICONS" =>"Y")
-							);?>
-						</div>
-					<?$frame->end();?>
-				</div>
-				<div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item">
-					<div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item--review button" data-action="showTab" data-tabname="reviews">
-						<?
-							$reviewDeclension = new \Bitrix\Main\Grid\Declension('отзыв', 'отзыва', 'отзывов');
-							$cntReviewProduct = (int)$arResult["PROPERTIES"]["FORUM_MESSAGE_CNT"]["VALUE"];
-						?>
-						<?=$cntReviewProduct?>&nbsp;<?=$reviewDeclension->get($cntReviewProduct)?>
-					</div>
-				</div>
-				<div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item">
-                    <?if(in_array($arResult["ID"], $arParams["USER_FAVORITES"])):?>
-                        <div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item--wish-list button active"
-                             data-title="<?=GetMessage("CATALOG_IZB")?>"
-                             data-title-in="<?=GetMessage("CATALOG_IZB_IN")?>"
-                             data-item-id="<?=$arResult["ID"]?>"><?=GetMessage("CATALOG_IZB_IN")?></div>
-                    <?else:?>
-                        <div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item--wish-list button"
-                             data-title="<?=GetMessage("CATALOG_IZB")?>"
-                             data-title-in="<?=GetMessage("CATALOG_IZB_IN")?>"
-                             data-item-id="<?=$arResult["ID"]?>"><?=GetMessage("CATALOG_IZB")?></div>
-                    <?endif;?>
-				</div>
-				<div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item">
-					<div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item--share">
-						<script src="//yastatic.net/es5-shims/0.0.2/es5-shims.min.js"></script>
-						<script src="//yastatic.net/share2/share.js" charset="utf-8"></script>
-						<div class="share_wrapp">
-							<div class="text button transparent"><?=GetMessage("SHARE_BUTTON");?></div>
-							<div class="ya-share2 yashare-auto-init shares" data-services="vkontakte,facebook,odnoklassniki,moimir,twitter,viber,whatsapp,skype,telegram"></div>
-						</div>
-					</div>
-				</div>
+                <?if(in_array($arResult["ID"], $arParams["USER_FAVORITES"])):?>
+                    <div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item--wish-list d-inline-block active cursor"
+                         data-title="<?=GetMessage("CATALOG_IZB")?>"
+                         data-title-in="<?=GetMessage("CATALOG_IZB_IN")?>"
+                         data-item-id="<?=$arResult["ID"]?>"><?=GetMessage("CATALOG_IZB_IN")?></div>
+                <?else:?>
+                    <div class="s7sbp--marketplace--catalog-element-detail-product--header-line--item--wish-list d-inline-block cursor"
+                         data-title="<?=GetMessage("CATALOG_IZB")?>"
+                         data-title-in="<?=GetMessage("CATALOG_IZB_IN")?>"
+                         data-item-id="<?=$arResult["ID"]?>"><?=GetMessage("CATALOG_IZB")?></div>
+                <?endif;?>
 			</div>
 
 			<div class="s7sbp--marketplace--catalog-element-detail-product--about">
-				<div class="s7sbp--marketplace--catalog-element-detail-product--about-property">
-					<div class="s7sbp--marketplace--catalog-element-detail-product--about-property--title"><?=GetMessage("PRODUCT_ABOUT_TITLE")?></div>
+
+                <div class="s7sbp--marketplace--catalog-element-detail-product--about-property">
+
 					<div class="s7sbp--marketplace--catalog-element-detail-product--about-property--list">
 						<div class="s7sbp--marketplace--catalog-element-detail-product--about-property--list--item">
 							<table class="props_list">
+                                <tr itemprop="additionalProperty" itemscope itemtype="http://schema.org/PropertyValue">
+                                    <td class="char_name">
+                                        <span><span itemprop="name"><?=Loc::getMessage("PRODUCT_FIELD_ID")?></span></span>
+                                    </td>
+                                    <td class="char_value">
+                                        <span><?=$arResult["ID"]?></span>
+                                    </td>
+                                </tr>
 								<?
-								$i = 0;
+								//$i = 0;
 								foreach($arResult["DISPLAY_PROPERTIES"] as $arProp):?>
-									<?if(!in_array($arProp["CODE"], array("SERVICES", "BRAND", "HIT", "RECOMMEND", "NEW", "STOCK", "VIDEO", "VIDEO_YOUTUBE", "CML2_ARTICLE"))):?>
+									<?if(!in_array($arProp["CODE"], array("MORE_PHOTO", "MOQ", "Production_time_days"))):?>
 										<?if((!is_array($arProp["DISPLAY_VALUE"]) && strlen($arProp["DISPLAY_VALUE"])) || (is_array($arProp["DISPLAY_VALUE"]) && implode('', $arProp["DISPLAY_VALUE"]))):
-											if($i++ > 3) continue;
+											//if($i++ > 10) continue;
 										?>
 											<tr itemprop="additionalProperty" itemscope itemtype="http://schema.org/PropertyValue">
 												<td class="char_name">
 													<span <?if($arProp["HINT"] && $arParams["SHOW_HINTS"] == "Y"){?>class="whint"<?}?>><?if($arProp["HINT"] && $arParams["SHOW_HINTS"] == "Y"):?><div class="hint"><span class="icon"><i>?</i></span><div class="tooltip"><?=$arProp["HINT"]?></div></div><?endif;?><span itemprop="name"><?=$arProp["NAME"]?></span></span>
 												</td>
 												<td class="char_value">
-													<span itemprop="value">
+													<span itemprop="value" id="property-<?=$arProp["CODE"]?>">
 														<?if(count($arProp["DISPLAY_VALUE"]) > 1):?>
 															<?=implode(', ', $arProp["DISPLAY_VALUE"]);?>
 														<?else:?>
@@ -182,53 +132,141 @@
 							</table>
 						</div>
 					</div>
-					<div class="s7sbp--marketplace--catalog-element-detail-product--about-property--show-all" data-action="showTab" data-tabname="about"><?=GetMessage("PRODUCT_PROPERTY_SHOW_ALL")?></div>
-				</div>
+
+                    <?if(!empty($arResult["PRICES"])):?>
+                        <table class="border border-light width-100 mt-5">
+                            <?
+                            $i = 0;
+                            foreach ($arResult["PRICES"] as $code=>$arPrice):
+                                $i++;
+                            ?>
+                                <tr>
+                                    <td class="p-3<?=$i===1?" bg-light text-18 text-bold":" "?>">
+                                        <?
+                                        echo Loc::getMessage("PRODUCT_PRICE_QUANT");
+                                        echo ", ";
+                                        echo $arResult["CAT_PRICES"][$code]["TITLE"]
+                                        ?>
+                                    </td>
+                                    <td class="p-3 text-right<?=$i===1?" bg-light text-18 text-bold":" "?>">
+                                        <?
+                                        // $arPrice["PRINT_VALUE"]
+                                        $arPrice["VALUE"] = $arPrice["VALUE"] / $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"];
+                                        $arPrice["VALUE"] = round($arPrice["VALUE"], 2);
+                                        echo CurrencyFormat($arPrice["VALUE"], $arPrice["CURRENCY"]);
+                                        ?>
+                                    </td>
+                                </tr>
+                            <?
+                            endforeach;
+                            ?>
+                        </table>
+                    <?endif;?>
+
+                </div>
+
 				<div class="s7sbp--marketplace--catalog-element-detail-product--about-store">
-					<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--title"><?=GetMessage("PRODUCT_STORE_TITLE")?></div>
-					<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--logo" style="background: #f6f6f6"></div>
-					<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--rating">
-						<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--rating--star star-empty"></div>
-						<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--rating--star star-empty"></div>
-						<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--rating--star star-empty"></div>
-						<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--rating--star star-empty"></div>
-						<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--rating--star star-empty"></div>
-					</div>
-					<div class="s7sbp--marketplace--catalog-element-detail-product--about-store--review">
-						<span class="s7sbp--marketplace--catalog-element-detail-product--about-store--review--count">25 отзывов</span>
-						<span class="s7sbp--marketplace--catalog-element-detail-product--about-store--review--text"><?=GetMessage("PRODUCT_STORE_REVIEW_TEXT")?></span>
-					</div>
-				</div>
-			</div>
 
-			<div class="s7sbp--marketplace--catalog-element-detail-product--price">
-				<?if($arResult["MIN_PRICE"]["DISCOUNT_VALUE"] < $arResult["MIN_PRICE"]["VALUE"]):?>
-					<div class="s7sbp--marketplace--catalog-element-detail-product--price--discount">
-						<span class="s7sbp--marketplace--catalog-element-detail-product--price--discount-value">
-							<?=$arResult["MIN_PRICE"]["PRINT_VALUE"]?>
-						</span>
-						<span class="s7sbp--marketplace--catalog-element-detail-product--price--discount-percent">-<?=$arResult["MIN_PRICE"]["DISCOUNT_DIFF_PERCENT"]?>%</span>
-					</div>
-				<?endif;?>
-				<div class="s7sbp--marketplace--catalog-element-detail-product--price--value">
-					<?=$arResult["MIN_PRICE"]["PRINT_DISCOUNT_VALUE"]?>
-				</div>
-			</div>
+                    <?if($arResult["DISPLAY_PROPERTIES"]["MOQ"]):?>
+                        <div class="d-inline-block pt-1 pb-1 pl-2 pr-2 bg-warning">
+                            <?=Loc::getMessage("PRODUCT_PROPERTY_MOQ", array("COUNT" => $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"]))?>
+                        </div>
+                    <?endif;?>
 
-			<div class="s7sbp--marketplace--catalog-element-detail-product--controls">
-				<div class="s7sbp--marketplace--catalog-element-detail-product--controls--amount">
-					<span class="product-item-amount-field-btn-minus no-select product-item-amount-field-btn-disabled" id="<?=$arResult['ID']?>_quant_down"></span>
-					<input class="product-item-amount-field" type="number" name="<?=$arParams['PRODUCT_QUANTITY_VARIABLE']?>" value="1">
-					<span class="product-item-amount-field-btn-plus no-select" id="<?=$arResult['ID']?>_quant_up"></span>
+                    <?if($arResult["DISPLAY_PROPERTIES"]["Production_time_days"]):?>
+                        <div class="d-inline-block pt-1 pb-1 pl-2 pr-2">
+                            <?=Loc::getMessage("PRODUCT_PROPERTY_PRODACTION_DAYS", array("COUNT" => $arResult["DISPLAY_PROPERTIES"]["Production_time_days"]["DISPLAY_VALUE"]))?>
+                        </div>
+                    <?endif;?>
+
+                    <div class="s7sbp--marketplace--catalog-element-detail-product--controls">
+                        <div class="s7sbp--marketplace--catalog-element-detail-product--controls--amount">
+                            <span class="product-item-amount-field-btn-minus no-select product-item-amount-field-btn-disabled" id="<?=$arResult['ID']?>_quant_down"></span>
+                            <input class="product-item-amount-field"
+                                   type="number"
+                                   name="<?=$arParams['PRODUCT_QUANTITY_VARIABLE']?>"
+                                   data-moq="<?=$MOQ?>"
+                                   data-hint="<?=$arResult["DISPLAY_PROPERTIES"]["MOQ"]["HINT"]?>"
+                                   data-title="<?=Loc::getMessage("PRODUCT_WARNING")?>"
+                                   value="<?=$MOQ?>">
+                            <span class="product-item-amount-field-btn-plus no-select" id="<?=$arResult['ID']?>_quant_up"></span>
+                        </div>
+                        <div class="s7sbp--marketplace--catalog-element-detail-product--controls--add-to-basket">
+                            <button class="btn" data-item-id="<?=$arResult["ID"]?>"><?=GetMessage("PRODUCT_ADD_TO_BASKET")?></button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3"><?=Loc::getMessage("PRODUCT_ORDER_ITOG")?>:</div>
+                    <table class="width-100 border border-light mt-2 text-bold">
+
+                        <?if(!empty($arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"])):?>
+                            <tr>
+                                <td class="p-2"><?=Loc::getMessage("PRODUCT_ORDER_ITOG_PCS")?></td>
+                                <td class="p-2 text-right">
+                                    <span id="calculator-<?=$arResult["PROPERTIES"]["Master_CTN_PCS"]["CODE"]?>">
+                                        <?
+                                        $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] = $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] * $MOQ;
+                                        $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] = round($arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"], 2);
+                                        echo $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"];
+                                        ?>
+                                    </span>
+                                    <?=Loc::getMessage("PRODUCT_ORDER_ITOG_PCS_QUANT")?>
+                                </td>
+                            </tr>
+                        <?endif;?>
+
+                        <?if(!empty($arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"])):?>
+                            <tr>
+                                <td class="p-2"><?=Loc::getMessage("PRODUCT_ORDER_ITOG_CTN")?></td>
+                                <td class="p-2 text-right">
+                                    <span id="calculator-<?=$arResult["PROPERTIES"]["Master_CTN_CBM"]["CODE"]?>">
+                                        <?
+                                        $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"] = $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"] * $MOQ;
+                                        $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"] = round($arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"], 1);
+                                        echo $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"];
+                                        ?>
+                                    </span>
+                                    <?=Loc::getMessage("PRODUCT_ORDER_ITOG_CTN_QUANT")?>
+                                </td>
+                            </tr>
+                        <?endif;?>
+
+                        <?if(!empty($arResult["PRICES"])):?>
+                            <?
+                            foreach ($arResult["PRICES"] as $code=>$arPrice):
+                                $currency = explode(" ", $arPrice["PRINT_VALUE"]);
+                                $currency = array_pop($currency);
+                            ?>
+                                <tr class="<?=$code == "normal_price" ? "bg-light text-18" : ""?>">
+                                    <td class="p-2">
+                                        <?
+                                        echo Loc::getMessage("CALCULATOR_ITOG");
+                                        echo " ";
+                                        $arResult["CAT_PRICES"][$code]["TITLE"] = explode(" ", $arResult["CAT_PRICES"][$code]["TITLE"]);
+                                        $arResult["CAT_PRICES"][$code]["TITLE"] = array_shift($arResult["CAT_PRICES"][$code]["TITLE"]);
+                                        echo $arResult["CAT_PRICES"][$code]["TITLE"];
+                                        ?>
+                                    </td>
+                                    <td class="p-2 text-right text-nowrap"
+                                        id="price-<?=$code?>"
+                                        data-currency="<?=$currency?>"
+                                        data-price="<?=$arPrice["VALUE"]?>">
+                                        <?
+                                        $arPrice["VALUE"] = $arPrice["VALUE"] * $MOQ;
+                                        $arPrice["VALUE"] = round($arPrice["VALUE"], 2);
+                                        echo $arPrice["VALUE"];
+                                        echo " ";
+                                        echo $currency;
+                                        ?>
+                                    </td>
+                                </tr>
+                            <?endforeach;?>
+                        <?endif;?>
+
+                    </table>
+
 				</div>
-				<div class="s7sbp--marketplace--catalog-element-detail-product--controls--add-to-basket">
-					<button class="btn" data-item-id="<?=$arResult["ID"]?>"><?=GetMessage("PRODUCT_ADD_TO_BASKET")?></button>
-				</div>
-				<?/*
-				<div class="s7sbp--marketplace--catalog-element-detail-product--controls--buy-one-click">
-					<button class="btn" data-item-id="<?=$arResult["ID"]?>">Купить сейчас</button>
-				</div>
-				*/?>
+
 			</div>
 		</div>
 	</div>
@@ -236,66 +274,55 @@
 	<div class="s7sbp--marketplace--catalog-element-detail-product--tabs">
 		<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--header">
 			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--header--item active" data-tabname="about"><?=GetMessage("PRODUCT_TABS_ABOUT")?></div>
-			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--header--item" data-tabname="reviews"><?=GetMessage("PRODUCT_TABS_REVIEW")?></div>
-			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--header--item" data-tabname="delivery"><?=GetMessage("PRODUCT_TABS_DELLIVERY")?></div>
-			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--header--item" data-tabname="garanty"><?=GetMessage("PRODUCT_TABS_GARANTY")?></div>
+			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--header--item" data-tabname="video"><?=GetMessage("PRODUCT_TABS_VIDEO")?></div>
 		</div>
 		<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body">
+
 			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item active" data-tabname="about">
-				<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item--title"><?=GetMessage("PRODUCT_TABS_ABOUT_TITLE")?></div>
-				<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item--detail-text">
-					<?=$arResult["DETAIL_TEXT"]?>
-				</div>
+
+                <?if(!empty($arResult["DETAIL_TEXT"])):?>
+                    <div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item--detail-text">
+                        <?=$arResult["DETAIL_TEXT"]?>
+                    </div>
+                <?endif;?>
 				
 				<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item--property">
 					<table class="props_list">
 						<?
+                        /*
 							$aCompGrupperProperties = array();
-							$aSkipProperty = array("SERVICES", "BRAND", "HIT", "RECOMMEND", "NEW", "STOCK", "VIDEO", "VIDEO_YOUTUBE", "CML2_ARTICLE");
-							foreach($arResult["DISPLAY_PROPERTIES"] as $arProp){
-								if(in_array($arProp["CODE"], $aSkipProperty)) continue;
+							$aSkipProperty = array("MORE_PHOTO", "VIDEO", "DISCOUNT");
+							foreach($arResult["PROPERTIES"] as $arProp){
+								if(in_array($arProp["CODE"], $aSkipProperty))
+								    continue;
+								$arProp["DISPLAY_VALUE"] = $arProp["VALUE"] ? $arProp["VALUE"] : Loc::getMessage("PRODUCT_NONE_VALUE");
 								$aCompGrupperProperties[] = $arProp;
 							}
 							$APPLICATION->IncludeComponent('studio7sbp:grupper.list', '', array('DISPLAY_PROPERTIES' => $aCompGrupperProperties), $component);
+                        */
 						?>
-
-						<?/*foreach($arResult["DISPLAY_PROPERTIES"] as $arProp):?>
-							<?if(!in_array($arProp["CODE"], array("SERVICES", "BRAND", "HIT", "RECOMMEND", "NEW", "STOCK", "VIDEO", "VIDEO_YOUTUBE", "CML2_ARTICLE"))):?>
-								<?if((!is_array($arProp["DISPLAY_VALUE"]) && strlen($arProp["DISPLAY_VALUE"])) || (is_array($arProp["DISPLAY_VALUE"]) && implode('', $arProp["DISPLAY_VALUE"]))):?>
-									<tr itemprop="additionalProperty" itemscope itemtype="http://schema.org/PropertyValue">
-										<td class="char_name">
-											<span <?if($arProp["HINT"] && $arParams["SHOW_HINTS"] == "Y"){?>class="whint"<?}?>><?if($arProp["HINT"] && $arParams["SHOW_HINTS"] == "Y"):?><div class="hint"><span class="icon"><i>?</i></span><div class="tooltip"><?=$arProp["HINT"]?></div></div><?endif;?><span itemprop="name"><?=$arProp["NAME"]?></span></span>
-										</td>
-										<td class="char_value">
-											<span itemprop="value">
-												<?if(count($arProp["DISPLAY_VALUE"]) > 1):?>
-													<?=implode(', ', $arProp["DISPLAY_VALUE"]);?>
-												<?else:?>
-													<?=$arProp["DISPLAY_VALUE"];?>
-												<?endif;?>
-											</span>
-										</td>
-									</tr>
-								<?endif;?>
-							<?endif;?>
-						<?endforeach;*/?>
 					</table>
+
 				</div>
+
 			</div>
-			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item" data-tabname="delivery">
-				<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item--title"><?=GetMessage("PRODUCT_TABS_DELLIVERY")?></div>
-				<?=$arResult["DELIVERY_TEXT"]?>
-			</div>
-			<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item" data-tabname="garanty">
-				<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item--title"><?=GetMessage("PRODUCT_TABS_GARANTY")?></div>
-				<?=$arResult["COMPANY_INFO"]["PROPERTY_COMP_GARANTY_VALUE"]["TEXT"]?>
-			</div>
+
+            <div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item" data-tabname="video">
+                <?
+                $newWidth = 700;
+                $newHeight = 500;
+
+                $arResult["PROPERTIES"]["VIDEO"]["VALUE"] = preg_replace(
+                    array('/width="\d+"/i', '/height="\d+"/i'),
+                    array(sprintf('width="%d"', $newWidth), sprintf('height="%d"', $newHeight)),
+                    $arResult["PROPERTIES"]["VIDEO"]["~VALUE"]);
+
+                echo $arResult["PROPERTIES"]["VIDEO"]["VALUE"]
+                ?>
+            </div>
+
 		</div>
-		
-
 	</div>
-
-
 </div>
 
 <script>
