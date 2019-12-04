@@ -119,6 +119,7 @@
             price = parseFloat(price);
             price = price * value;
             this.animateNumber(itemSum, price);
+            this.calculateProperty(value, item);
 
 
             // calculate basket
@@ -140,8 +141,7 @@
                 space = 0,
                 price = 0,
                 weight = 0,
-                count = 0,
-                currency = "";
+                count = 0;
 
             if(basket.find(".input-group").length > 0){
                 basket.find(".input-group").each(function () {
@@ -153,7 +153,7 @@
                     space += parseFloat($(this).data("space")) * count;
                 });
 
-                this.animateNumber($(".basket-total-sum"), price);
+                $(".basket-total-sum").text(price.toFixed(2));
                 this.animateNumber($(".basket-total-wight"), weight);
                 this.animateNumber($(".basket-total-space"), space);
             }
@@ -161,6 +161,33 @@
                 basket.html(null);
                 $("#basket-empty").removeClass("d-none");
             }
+
+        },
+
+        calculateProperty: function(count, item){
+            // PROPERTY_LHW_ctn
+            // PROPERTY_DISPLAY_COUNT
+            // PROPERTY_Master_CTN_PCS
+            // PROPERTY_Master_CTN_SIZE
+            // PROPERTY_WEIGHT
+
+            var property = item.find(".cell-PROPERTY_LHW_ctn"),
+                value = 0;
+
+            
+            property = item.find(".cell-PROPERTY_Master_CTN_PCS");
+            value = parseFloat(property.data("value")) * count;
+            property.text(value);
+
+            property = item.find(".cell-PROPERTY_Master_CTN_CBM");
+            value = parseFloat(property.data("value")) * count;
+            value = value.toFixed(1);
+            property.text(value);
+
+            property = item.find(".cell-PROPERTY_WEIGHT");
+            value = parseFloat(property.data("value")) * count;
+            value = value.toFixed(1);
+            property.text(value);
 
         },
 
@@ -188,26 +215,18 @@
          * @param number
          */
         animateNumber: function(element, number){
-            $({numberValue: 1}).animate({numberValue: number}, {
-                duration: this.format.duration,
-                easing: 'linear',
-                step: function() {
-                    element.text(this.numberValue.toFixed(saleBasket.format.ceil));
-                },
-                complete: function () {
-                    element.text(number.toFixed(saleBasket.format.ceil));
-                }
-            });
+            number = number.toFixed(saleBasket.format.ceil);
+            element.text(number);
         },
 
+        /**
+         * Basic animate fof this project
+         * @param element
+         * @param number
+         */
         animateInput: function(element, number){
-            $({numberValue: 1}).animate({numberValue: number}, {
-                duration: this.format.duration,
-                easing: 'linear',
-                step: function() {
-                    element.val(Math.ceil(this.numberValue));
-                }
-            });
+            number = number.toFixed(saleBasket.format.ceil);
+            element.val(number);
         },
 
         // basket
