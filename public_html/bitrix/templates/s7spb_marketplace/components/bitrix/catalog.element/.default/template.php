@@ -151,7 +151,6 @@ $MOQ = $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] ? $arResult["DISP
                                     <td class="p-3 text-right<?=$i===1?" bg-light text-18 text-bold":" "?>">
                                         <?
                                         // $arPrice["PRINT_VALUE"]
-                                        $arPrice["VALUE"] = $arPrice["VALUE"] / $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"];
                                         $arPrice["VALUE"] = round($arPrice["VALUE"], 2);
                                         echo CurrencyFormat($arPrice["VALUE"], $arPrice["CURRENCY"]);
                                         ?>
@@ -205,9 +204,9 @@ $MOQ = $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] ? $arResult["DISP
                                 <td class="p-2 text-right">
                                     <span id="calculator-<?=$arResult["PROPERTIES"]["Master_CTN_PCS"]["CODE"]?>">
                                         <?
-                                        $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] = $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] * $MOQ;
-                                        $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] = round($arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"], 2);
-                                        echo $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"];
+                                        $Master_CTN_PCS = intval($arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"]) * $MOQ;
+                                        $Master_CTN_PCS = round($Master_CTN_PCS, 2);
+                                        echo $Master_CTN_PCS;
                                         ?>
                                     </span>
                                     <?=Loc::getMessage("PRODUCT_ORDER_ITOG_PCS_QUANT")?>
@@ -221,9 +220,9 @@ $MOQ = $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] ? $arResult["DISP
                                 <td class="p-2 text-right">
                                     <span id="calculator-<?=$arResult["PROPERTIES"]["Master_CTN_CBM"]["CODE"]?>">
                                         <?
-                                        $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"] = $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"] * $MOQ;
-                                        $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"] = round($arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"], 1);
-                                        echo $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"];
+                                        $Master_CTN_CBM = $arResult["PROPERTIES"]["Master_CTN_CBM"]["VALUE"] * $MOQ;
+                                        $Master_CTN_CBM = round($Master_CTN_CBM, 3);
+                                        echo $Master_CTN_CBM;
                                         ?>
                                     </span>
                                     <?=Loc::getMessage("PRODUCT_ORDER_ITOG_CTN_QUANT")?>
@@ -250,9 +249,10 @@ $MOQ = $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] ? $arResult["DISP
                                     <td class="p-2 text-right text-nowrap"
                                         id="price-<?=$code?>"
                                         data-currency="<?=$currency?>"
-                                        data-price="<?=$arPrice["VALUE"]?>">
+                                        data-pcs="<?=$arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"]?>"
+                                        data-price="<?=$arPrice["VALUE"] * $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"]?>">
                                         <?
-                                        $arPrice["VALUE"] = $arPrice["VALUE"] * $MOQ;
+                                        $arPrice["VALUE"] = $arPrice["VALUE"] * $arResult["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] * $MOQ;
                                         $arPrice["VALUE"] = round($arPrice["VALUE"], 2);
                                         echo $arPrice["VALUE"];
                                         echo " ";
@@ -289,7 +289,7 @@ $MOQ = $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] ? $arResult["DISP
 				<div class="s7sbp--marketplace--catalog-element-detail-product--tabs--body--item--property">
 					<table class="props_list">
 						<?
-                        /*
+
 							$aCompGrupperProperties = array();
 							$aSkipProperty = array("MORE_PHOTO", "VIDEO", "DISCOUNT");
 							foreach($arResult["PROPERTIES"] as $arProp){
@@ -299,7 +299,7 @@ $MOQ = $arResult["DISPLAY_PROPERTIES"]["MOQ"]["DISPLAY_VALUE"] ? $arResult["DISP
 								$aCompGrupperProperties[] = $arProp;
 							}
 							$APPLICATION->IncludeComponent('studio7sbp:grupper.list', '', array('DISPLAY_PROPERTIES' => $aCompGrupperProperties), $component);
-                        */
+
 						?>
 					</table>
 
