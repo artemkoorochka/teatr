@@ -52,12 +52,13 @@ $(function() {
 		inputQuantity.val(newInputValue).trigger('change');
 
 		// calculate properties
-		$("#calculator-Master_CTN_PCS").text(parseInt($("#property-Master_CTN_PCS").text()) * newInputValue);
-		$("#calculator-Master_CTN_CBM").text((parseFloat($("#property-Master_CTN_CBM").text()) * newInputValue).toFixed(3));
+		var Master_CTN_PCS = parseInt($("#property-Master_CTN_PCS").text()) * newInputValue;
+		$("#calculator-Master_CTN_PCS").text(Master_CTN_PCS);
+		$("#calculator-Master_CTN_CBM").text((parseFloat($("#property-Master_CTN_CBM").text()) * Master_CTN_PCS).toFixed(3));
 		// calculate prices
-		$("#price-FOB").text((parseFloat($("#price-FOB").data("price")) * newInputValue).toFixed(2) + " " + $("#price-FOB").data("currency"));
-		$("#price-normal_price").text((parseFloat($("#price-normal_price").data("price")) * newInputValue).toFixed(2)  + " " + $("#price-normal_price").data("currency"));
-		$("#price-quickly_price").text((parseFloat($("#price-quickly_price").data("price")) * newInputValue).toFixed(2)  + " " + $("#price-quickly_price").data("currency"));
+		$("#price-FOB").text((parseFloat($("#price-FOB").data("price")) * newInputValue).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " " + $("#price-FOB").data("currency"));
+		$("#price-normal_price").text((parseFloat($("#price-normal_price").data("price")) * newInputValue).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")  + " " + $("#price-normal_price").data("currency"));
+		$("#price-quickly_price").text((parseFloat($("#price-quickly_price").data("price")) * newInputValue).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")  + " " + $("#price-quickly_price").data("currency"));
 
 	})
 	.on('click', '[data-action="showTab"]', function(e) {
@@ -113,7 +114,7 @@ $(function() {
 				var request = BX.ajax.runAction('studio7spb:marketplace.api.tools.addToBasket', {
 					data: {
 						id: itemId,
-						quantity: quantity
+						quantity: $("#calculator-Master_CTN_PCS").text() //quantity
 					}
 				});
 				request.then(function(response){
