@@ -49,21 +49,9 @@ foreach ($this->basketItems as $arItem)
 
     }
 
-    // space for item
-    $result["SPACE"][$arItem["ID"]] = array(
-        "DIMENSIONS" => unserialize($arItem["~DIMENSIONS"]),
-        ///"PROPERTY_Master_CTN_SIZE" => $arItem["PROPERTY_L_ctn_VALUE"] *  $arItem["PROPERTY_H_ctn_VALUE"] * $arItem["PROPERTY_W_ctn_VALUE"] * $arItem["QUANTITY"],
-        "PROPERTY_Master_CTN_SIZE" => $arItem["PROPERTY_Master_CTN_CBM"]
-    );
-
-    $result["SPACE"][$arItem["ID"]]["DIMENSIONS"] = $result["SPACE"][$arItem["ID"]]["DIMENSIONS"]["WIDTH"] *
-        $result["SPACE"][$arItem["ID"]]["DIMENSIONS"]["HEIGHT"] *
-        $result["SPACE"][$arItem["ID"]]["DIMENSIONS"]["LENGTH"] * 0.000001;
-
-    $result["SPACE"][$arItem["ID"]]["PROPERTY_LHW_ctn"] = round($result["SPACE"][$arItem["ID"]]["DIMENSIONS"], $result["SPACE"]["NUMBER_ROUND"]);
 
     // total space
-    $result["SPACE"]["TOTAL"]["LHW_ctn"] += round($result["SPACE"][$arItem["ID"]]["DIMENSIONS"] * $arItem["QUANTITY"], $result["SPACE"]["NUMBER_ROUND"]);
+    $result["SPACE"]["TOTAL"]["LHW_ctn"] += round($arItem["PROPERTY_Master_CTN_CBM_VALUE"] * $arItem["QUANTITY"], $result["SPACE"]["NUMBER_ROUND"]);;
     $result["SPACE"]["TOTAL"]["WEIGHT"] += round($arItem["PROPERTY_WEIGHT_VALUE"] * $arItem["QUANTITY"], $result["SPACE"]["NUMBER_ROUND"]);
 
 

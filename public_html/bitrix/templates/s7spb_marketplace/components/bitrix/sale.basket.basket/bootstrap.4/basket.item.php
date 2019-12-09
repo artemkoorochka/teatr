@@ -50,25 +50,44 @@ use Bitrix\Main\Localization\Loc;
 
     <?
     $i = 0;
+    $value = 0;
+    $data_value = 0;
     foreach ($arParams["COLUMNS_HEADER"] as $code):
         $i++;
 
-        if(!empty($arResult["SPACE"][$arItem["ID"]][$code])){
-            $value = $arResult["SPACE"][$arItem["ID"]][$code];
-        }else{
-            $value = round($arItem[$code . "_VALUE"], 1);
-        }
-        if($value <= 0){
-            $value = 1;
+        switch ($code){
+            case "PROPERTY_LHW_ctn":
+                $value = $arItem["PROPERTY_Master_CTN_CBM_VALUE"] * $arItem["PROPERTY_Master_CTN_PCS_VALUE"];
+                break;
+            case "PROPERTY_DISPLAY_COUNT":
+                $value = $arItem["PROPERTY_Master_CTN_PCS_VALUE"];
+                break;
+            case "PROPERTY_Master_CTN_PCS":
+                $value = $arItem["QUANTITY"] / $arItem["PROPERTY_Master_CTN_PCS_VALUE"];
+                $value = round($value, 1);
+                break;
+            case "PROPERTY_Master_CTN_CBM":
+                $data_value = $arItem["PROPERTY_Master_CTN_CBM_VALUE"];
+                $value = $arItem["QUANTITY"] * $data_value;
+                $value = round($value, 1);
+                break;
+            case "PROPERTY_WEIGHT":
+                $value = 0;
+                $data_value = $arItem["PROPERTY_WEIGHT_VALUE"];
+                if($data_value > 0){
+                    $value = $arItem["QUANTITY"] * $data_value;
+                    $value = round($value, 1);
+                }
+                break;
         }
     ?>
-        <?if($i === 2):?>
+        <?if($i === 3):?>
             <td class="align-middle">
                 <div class="input-group"
                      data-currency="<?=$arResult["CURRENCIES_FORMAT"][$arItem["CURRENCY"]]?>"
                      data-sum="<?=$arItem["SUM_VALUE"]?>"
                      data-price="<?=$arItem["PRICE"]?>"
-                     data-space="<?=$arResult["SPACE"][$arItem["ID"]]["DIMENSIONS"]?>"
+                     data-space="<?=$arItem["PROPERTY_Master_CTN_CBM_VALUE"]?>"
                      data-weight="<?=$arItem["PROPERTY_WEIGHT_VALUE"]?>">
                     <a class="input-group-prepend" onclick="saleBasket.count(this, false)">
                         <span class="input-group-text">-</span>
@@ -87,13 +106,8 @@ use Bitrix\Main\Localization\Loc;
         <?endif;?>
 
         <td class="text-nowrap align-middle text-center d-none d-lg-table-cell cell-<?=$code?>"
-            data-value="<?=$value?>">
-            [<?=$code?>]
-            <?
-            if(in_array($code, array("PROPERTY_Master_CTN_PCS", "PROPERTY_Master_CTN_CBM", "PROPERTY_WEIGHT"))) // "PROPERTY_Master_CTN_CBM"
-            $value = $value * $arItem["QUANTITY"];
-            echo $value;
-            ?>
+            data-value="<?=$data_value ? $data_value : $value?>">
+            <?=$value;?>
         </td>
     <?endforeach;?>
 

@@ -115,7 +115,7 @@
 
             // output price
             this.animateInput(input, value);
-            price = price.toFixed(2);
+            price = price.toFixed(saleBasket.format.ceil);
             price = parseFloat(price);
             price = price * value;
             this.animateNumber(itemSum, price);
@@ -153,7 +153,7 @@
                     space += parseFloat($(this).data("space")) * count;
                 });
 
-                $(".basket-total-sum").text(price.toFixed(2));
+                $(".basket-total-sum").text(price.toFixed(saleBasket.format.ceil));
                 this.animateNumber($(".basket-total-wight"), weight);
                 this.animateNumber($(".basket-total-space"), space);
             }
@@ -163,7 +163,6 @@
             }
 
         },
-
         calculateProperty: function(count, item){
             // PROPERTY_LHW_ctn
             // PROPERTY_DISPLAY_COUNT
@@ -171,23 +170,30 @@
             // PROPERTY_Master_CTN_SIZE
             // PROPERTY_WEIGHT
 
-            var property = item.find(".cell-PROPERTY_LHW_ctn"),
-                value = 0;
+            var property = item.find(".cell-PROPERTY_Master_CTN_PCS"),
+                value = parseFloat(item.find(".cell-PROPERTY_DISPLAY_COUNT").data("value"));
 
-            
-            property = item.find(".cell-PROPERTY_Master_CTN_PCS");
-            value = parseFloat(property.data("value")) * count;
-            property.text(value);
+            if(value > 0){
+                value = count / value;
+                value = value.toFixed(1);
+                property.text(value);
+            }
 
             property = item.find(".cell-PROPERTY_Master_CTN_CBM");
-            value = parseFloat(property.data("value")) * count;
-            value = value.toFixed(1);
-            property.text(value);
+            value = parseFloat(property.data("value"));
+            if(value > 0){
+                value = value * count;
+                value = value.toFixed(1);
+                property.text(value);
+            }
 
             property = item.find(".cell-PROPERTY_WEIGHT");
-            value = parseFloat(property.data("value")) * count;
-            value = value.toFixed(1);
-            property.text(value);
+            value = parseFloat(property.data("value"));
+            if(value > 0){
+                value = value * count;
+                value = value.toFixed(1);
+                property.text(value);
+            }
 
         },
 
@@ -215,8 +221,11 @@
          * @param number
          */
         animateNumber: function(element, number){
-            number = number.toFixed(saleBasket.format.ceil);
-            element.text(number);
+
+            if(number ){
+                number = number.toFixed(saleBasket.format.ceil);
+                element.text(number);
+            }
         },
 
         /**
@@ -225,7 +234,6 @@
          * @param number
          */
         animateInput: function(element, number){
-            number = number.toFixed(saleBasket.format.ceil);
             element.val(number);
         },
 

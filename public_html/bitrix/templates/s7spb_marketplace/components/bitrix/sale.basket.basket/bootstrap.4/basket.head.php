@@ -12,7 +12,7 @@ use Bitrix\Main\Localization\Loc;
     foreach ($arParams["COLUMNS_HEADER"] as $value):
         $i++;
     ?>
-        <?if($i===2):?>
+        <?if($i===3):?>
             <th class="align-middle"><?=Loc::getMessage("BASKET_ITEMS_HEAD_QUANTITY")?></th>
         <?endif;?>
         <?if(strpos($value, 'PROPERTY') !== false):?>
