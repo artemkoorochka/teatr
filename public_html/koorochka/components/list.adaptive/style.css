@@ -1,0 +1,95 @@
+/**
+  * Separatixm
+  */
+.p5{padding: 24px 10px;}
+.mt1{margin-top: 2px;}
+.mb4{margin-bottom: 24px;}
+
+.bg-white{background-color: #fff;}
+
+
+/**
+  * Colaborate
+  */
+.adaptive-viewport koorochka-carousel-viewport{
+    display: flex;
+}
+
+
+#catalog-section-news{
+    position: relative;
+}
+#catalog-section-news .koorochka-carusel-item{
+    width: 262px;
+    height: 290px;
+    border: 1px solid #ff6f00;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+#catalog-section-news .koorochka-carousel-wrapper,
+#catalog-section-news .koorochka-carousel-viewport{
+    height: 290px;
+    display: flex;
+}
+#catalog-section-news .koorochka-carousel-wrapper{
+    margin-left: 29px;
+    margin-right: 29px;
+    overflow: hidden;
+}
+#catalog-section-news .koorochka-carusel-item{
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/**
+  * Controls
+  */
+#catalog-section-news-next,
+#catalog-section-news-prev {
+    background: #ff6f00;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+    height: 126px;
+    width: 29px;
+    height: 290px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    cursor: pointer;
+}
+#catalog-section-news-prev {
+    right: 0;
+}
+#catalog-section-news-next:before,
+#catalog-section-news-prev:before {
+    border: 1px solid #fff;
+    border-right: 0;
+    border-bottom: 0;
+    content: '';
+    height: 18px;
+    left: 50%;
+    margin-left: -5px;
+    margin-top: -9px;
+    position: absolute;
+    top: 50%;
+    -webkit-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    width: 18px;
+}
+#catalog-section-news-prev:before {
+    transform: rotate(135deg);
+    margin-left: -13px;
+}
+#catalog-section-news-next:hover,
+#catalog-section-news-prev:hover {
+    background: #ffffff;
+    border: 1px solid #ff5000;
+}
+#catalog-section-news-next:hover:before,
+#catalog-section-news-prev:hover:before {
+    border-color: #ff5000; }
+
+.catalog-item-sticker{width: 24px; height: 24px; display: none;}
