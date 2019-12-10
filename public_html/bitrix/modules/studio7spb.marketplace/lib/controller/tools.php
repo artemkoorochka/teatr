@@ -149,6 +149,7 @@ class Tools extends \Bitrix\Main\Engine\Controller {
             $this->errorCollection[] = new \Bitrix\Main\Error("Do not id params", "PARAMETR_ERROR");
             return null;
         }
+        
         self::loadModules2Basket();
         $delete = array();
         $dbBasketItems = \CSaleBasket::GetList(
