@@ -69,6 +69,12 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 		isHttps: window.location.protocol === "https:",
 		orderSaveAllowed: false,
 		socServiceHiddenNode: false,
+		managerConnect: {
+			form: null,
+			id: "bx-manager-connect",
+			phone: null,
+			name: null
+		},
 
 		/**
 		 * Initialization of sale.order.ajax component js
@@ -1790,6 +1796,138 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			return BX.PreventDefault(event);
 		},
 
+		clickConnectManager: function(event)
+		{
+			var target = event.target || event.srcElement,
+				actionSection = BX.findParent(target, {className: "bx-active"}),
+				form = BX.create("DIV", {
+					props: {
+						className: "needs-validation was-validated"
+					},
+					children:[
+						// phone control group
+						BX.create("DIV", {
+							props:{
+								className: "form-group"
+							},
+							children: [
+
+								BX.create("LABEL", {
+									text: this.params.MANAGER_CONNECT_PHONE,
+								}),
+
+								BX.create("INPUT", {
+									props:{
+										className: "form-control",
+										id: "manager-help-phone",
+										name: "manager-help-phone",
+										type: "text",
+										required: "required"
+									}
+								})
+
+							]
+						}),
+						// name control group
+						BX.create("DIV", {
+							props:{
+								className: "form-group"
+							},
+							children: [
+
+								BX.create("LABEL", {
+									text: this.params.MANAGER_CONNECT_NAME,
+								}),
+
+								BX.create("INPUT", {
+									props:{
+										className: "form-control",
+										id: "manager-help-name",
+										name: "manager-help-name",
+										type: "text",
+										required: "required"
+									}
+								})
+
+							]
+						}),
+						// Submit button
+						BX.create("DIV", {
+							props: {
+								className: "text-center"
+							},
+							children:[
+								BX.create("BUTTON", {
+									props:{
+										className: "btn btn-primary"
+									},
+									text: this.params.MANAGER_CONNECT_TITLE,
+									events: {click: BX.proxy(this.clickSubmitManager, this)}
+								})
+							]
+						})
+					]
+				});
+
+			// generate form
+
+			// generate popup
+			if (this.popup)
+				this.popup.destroy();
+
+			var that = this;
+			this.popup = new BX.PopupWindow(this.managerConnect.id, null, {
+				autoHide: true,
+				offsetLeft: 0,
+				offsetTop: 0,
+				overlay : true,
+				closeByEsc: true,
+				titleBar: true,
+				closeIcon: true,
+				contentColor: 'white',
+				className: '',
+				zIndex: 100,
+				events: {
+					onPopupClose: function() {
+						this.destroy();
+					}
+				}
+			});
+			this.popup.setTitleBar(this.params.MANAGER_CONNECT_TITLE);
+			this.popup.setContent(form);
+			this.popup.show();
+			this.managerConnect.form = form;
+			return BX.PreventDefault(event);
+		},
+
+		clickSubmitManager: function(event){
+
+			var name = BX("manager-help-name", this.managerConnect.form),
+				phone = BX("manager-help-phone", this.managerConnect.form);
+
+			if(name.value.length > 1 && phone.value.length > 1){
+				// ajax
+				BX.ajax({
+					method: 'POST',
+					dataType: 'json',
+					url: "/system/ajax/manager.connect.php",
+					data: {
+						phone: phone.value,
+						name: name.value
+					}
+				});
+				// modify form to success
+				$(this.managerConnect.form).find(".form-group").remove();
+				$(this.managerConnect.form).find(".text-center").remove();
+				$(this.managerConnect.form).append(BX.create("DIV", {
+					props:{
+						className: "alert alert-success text-center"
+					},
+					text: this.params.MANAGER_CONNECT_SUCCESS
+				}));
+			}
+		},
+
 		/**
 		 * Showing authentication block node
 		 */
@@ -2208,6 +2346,14 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 						props: {href: 'javascript:void(0)', className: 'pull-right btn btn-primary pl-3 pr-3'},
 						html: this.params.MESS_FURTHER,
 						events: {click: BX.proxy(this.clickNextAction, this)}
+					})
+				);
+			}else{
+				buttons.push(
+					BX.create('button', {
+						props: {href: 'javascript:void(0)', className: 'pull-right btn btn-primary pl-3 pr-3'},
+						html: this.params.MANAGER_CONNECT,
+						events: {click: BX.proxy(this.clickConnectManager, this)}
 					})
 				);
 			}
@@ -4120,6 +4266,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
 				this.getDeliveryLocationInput(regionNodeCol);
 
+				this.editActivePropsReginBlock(regionNodeCol);
+
 				if (!this.result.SHOW_AUTH)
 				{
 					if (this.regionBlockNotEmpty)
@@ -5312,6 +5460,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				]
 			});
 
+			/*
 			if (currentDelivery.PRICE >= 0)
 			{
 				price = BX.create('LI', {
@@ -5337,6 +5486,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					]
 				});
 			}
+
+			 */
 
 			clear = BX.create('DIV', {style: {clear: 'both'}});
 			infoList = BX.create('UL', {props: {className: 'bx-soa-pp-list'}, children: [price, period]});
@@ -5509,7 +5660,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			}
 			labelNodes.push(logoNode);
 
-			
+			/*
 			if (item.PRICE >= 0 || typeof item.DELIVERY_DISCOUNT_PRICE !== 'undefined')
 			{
 				labelNodes.push(
@@ -5530,6 +5681,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 							: deliveryCached.PRICE_FORMATED})
 				);
 			}
+
+			 */
 
 			label = BX.create('DIV', {
 				props: {
@@ -6466,7 +6619,9 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					}
 				}
 
-				this.editPropsItems(propsNode);
+				this.editPropsManagerConnect(propsNode);
+
+				this.editPropsItems(propsNode, 1);
 				showPropMap && this.editPropsMap(propsNode);
 
 				if (this.params.HIDE_ORDER_DESCRIPTION !== 'Y')
@@ -6486,6 +6641,22 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 						BX.removeClass(this.propsBlockNode, 'bx-step-error');
 				}
 			}
+		},
+
+		editActivePropsReginBlock: function(activeNodeMode)
+		{
+			var node = activeNodeMode ? this.propsBlockNode : this.propsHiddenBlockNode,
+				propsContent, propsNode, selectedDelivery, showPropMap = false, i, validationErrors;
+
+
+			propsNode = BX.create('DIV', {props: {className: 'row'}});
+
+
+			this.editPropsItems(propsNode, 2);
+
+			activeNodeMode.appendChild(propsNode);
+
+
 		},
 
 		editFadePropsBlock: function()
@@ -6559,7 +6730,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			BX.bind(node.querySelector('.alert.alert-warning'), 'click', BX.proxy(this.showByClick, this));
 		},
 
-		editPropsItems: function(propsNode)
+		editPropsItems: function(propsNode, groupId)
 		{
 			if (!this.result.ORDER_PROP || !this.propertyCollection)
 				return;
@@ -6582,7 +6753,9 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					)
 						continue;
 
-					this.getPropertyRowNode(property, propsItemsContainer, false);
+					if(property.getGroupId() == groupId){
+						this.getPropertyRowNode(property, propsItemsContainer, false);
+					}
 				}
 			}
 
@@ -7785,6 +7958,30 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			});
 			div = BX.create('DIV', {
 				props: {className: 'form-group bx-soa-customer-field'},
+				children: [label, input]
+			});
+
+			propsCommentContainer.appendChild(div);
+			propsNode.appendChild(propsCommentContainer);
+		},
+
+		editPropsManagerConnect: function(propsNode)
+		{
+			var propsCommentContainer, label, input, div;
+
+			propsCommentContainer = BX.create('DIV', {props: {className: 'col-sm-12'}});
+			label = BX.create('LABEL', {
+				props: {className: 'bx-soa-customer-label'},
+				html: this.params.MESS_ORDER_MANAGER_CONNECT
+			});
+			input = BX.create('DIV', {
+				props: {
+
+				},
+				text: this.params.MESS_ORDER_MANAGER_NOT_NEED
+			});
+			div = BX.create('DIV', {
+				props: {className: 'form-group bx-soa-customer-field text-center'},
 				children: [label, input]
 			});
 
