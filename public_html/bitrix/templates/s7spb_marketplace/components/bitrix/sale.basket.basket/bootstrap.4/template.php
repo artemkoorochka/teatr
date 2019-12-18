@@ -85,14 +85,14 @@ Loc::loadLanguageFile(__FILE__);
             <?endif;?>
 
             <div class="row p-3 border-bottom border-primary mb-2">
-                <?include "basket.total.php";?>
+                <?include "basket.total.footer.php";?>
             </div>
 
             <div class="row bg-light align-items-center p-4">
 
                 <div class="col">
                     <b class="h3"><?=Loc::getMessage("BASKET_TOTAL")?>:</b>
-                    <b class="h1 basket-total-sum"><?=$arResult["allSum"]?></b>
+                    <b class="h1 basket-total-sum"><?=number_format($arResult["allSum"], 2, '.', ' ')?></b>
                     <b class="h1"><?=str_replace("#", "", $arResult["CURRENCIES_FORMAT"][$arResult["CURRENCY"]])?></b>
                 </div>
 
