@@ -1419,8 +1419,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 		isPriceChanged: function(result)
 		{
 			var priceBefore = this.result.TOTAL.ORDER_TOTAL_LEFT_TO_PAY === null || this.result.TOTAL.ORDER_TOTAL_LEFT_TO_PAY === ''
-					? this.result.TOTAL.ORDER_TOTAL_PRICE
-					: this.result.TOTAL.ORDER_TOTAL_LEFT_TO_PAY,
+				? this.result.TOTAL.ORDER_TOTAL_PRICE
+				: this.result.TOTAL.ORDER_TOTAL_LEFT_TO_PAY,
 				priceAfter = result.order.TOTAL.ORDER_TOTAL_LEFT_TO_PAY === null ? result.order.TOTAL.ORDER_TOTAL_PRICE : result.order.TOTAL.ORDER_TOTAL_LEFT_TO_PAY;
 
 			this.options.totalPriceChanged = parseFloat(priceBefore) != parseFloat(priceAfter);
@@ -1851,6 +1851,29 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
 							]
 						}),
+						// name control group
+						BX.create("DIV", {
+							props:{
+								className: "form-group"
+							},
+							children: [
+
+								BX.create("LABEL", {
+									text: this.params.MANAGER_CONNECT_EMAIL,
+								}),
+
+								BX.create("INPUT", {
+									props:{
+										className: "form-control",
+										id: "manager-help-email",
+										name: "manager-help-email",
+										type: "text",
+										required: "required"
+									}
+								})
+
+							]
+						}),
 						// Submit button
 						BX.create("DIV", {
 							props: {
@@ -1861,7 +1884,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 									props:{
 										className: "btn btn-primary"
 									},
-									text: this.params.MANAGER_CONNECT_TITLE,
+									text: this.params.MANAGER_CONNECT_SUBMIT,
 									events: {click: BX.proxy(this.clickSubmitManager, this)}
 								})
 							]
@@ -1897,17 +1920,14 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			this.popup.setContent(form);
 			this.popup.show();
 			this.managerConnect.form = form;
-
-			$(form).find("#manager-help-phone").mask('+7-(000)-000-00-00');
-
-
 			return BX.PreventDefault(event);
 		},
 
 		clickSubmitManager: function(event){
 
 			var name = BX("manager-help-name", this.managerConnect.form),
-				phone = BX("manager-help-phone", this.managerConnect.form);
+				phone = BX("manager-help-phone", this.managerConnect.form),
+				email = BX("manager-help-email", this.managerConnect.form);
 
 			if(name.value.length > 1 && phone.value.length > 1){
 				// ajax
@@ -1917,7 +1937,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					url: "/system/ajax/manager.connect.php",
 					data: {
 						phone: phone.value,
-						name: name.value
+						name: name.value,
+						email: email.value,
 					}
 				});
 				// modify form to success
@@ -2343,16 +2364,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			if (currentSection && currentSection.id.indexOf(lastSection.id) != '-1')
 				isLastNode = true;
 
-			if(currentSection.id == "bx-soa-region-hidden"){
-				buttons.push(
-					BX.create('button', {
-						props: {href: 'javascript:void(0)', className: 'pull-right btn btn-primary pl-3 pr-3'},
-						html: this.params.MANAGER_CONNECT,
-						events: {click: BX.proxy(this.clickConnectManager, this)}
-					})
-				);
-			}
-
 			if (!isLastNode)
 			{
 				buttons.push(
@@ -2364,6 +2375,15 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				);
 			}
 
+			if(currentSection.id == "bx-soa-region-hidden"){
+				buttons.push(
+					BX.create('button', {
+						props: {href: 'javascript:void(0)', className: 'pull-right btn btn-primary pl-3 pr-3'},
+						html: this.params.MANAGER_CONNECT,
+						events: {click: BX.proxy(this.clickConnectManager, this)}
+					})
+				);
+			}
 
 			node.appendChild(
 				BX.create('DIV', {
@@ -2429,7 +2449,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 						}
 					}).animate();
 				}
-				/*
 				else
 				{
 					orderSaveNode.style.display = 'none';
@@ -2438,8 +2457,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					if (mobileButton)
 						mobileButton.setAttribute('style', 'display: none !important');
 				}
-
-				 */
 			}
 		},
 
@@ -3738,7 +3755,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			else if (column.id === 'DETAIL_PICTURE')
 			{
 				logotype = this.getImageSources(allData.data, column.id),
-				img = BX.create('IMG', {props: {src: logotype && logotype.src_1x || this.defaultBasketItemLogo}});
+					img = BX.create('IMG', {props: {src: logotype && logotype.src_1x || this.defaultBasketItemLogo}});
 
 				if (logotype && logotype.src_1x && logotype.src_orig)
 				{
@@ -3873,7 +3890,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			else if (column.id === 'DETAIL_PICTURE' || column.id === 'PREVIEW_PICTURE')
 			{
 				logotype = this.getImageSources(allData.data, column.id),
-				img = BX.create('IMG', {props: {src: logotype && logotype.src_1x || this.defaultBasketItemLogo}, style: {maxWidth: '50%'}});
+					img = BX.create('IMG', {props: {src: logotype && logotype.src_1x || this.defaultBasketItemLogo}, style: {maxWidth: '50%'}});
 
 				if (logotype && logotype.src_1x && logotype.src_orig)
 				{
@@ -4471,7 +4488,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				labelHtml = '<label class="bx-soa-custom-label" for="soa-property-' + parseInt(locationId) + '">'
 					+ (currentProperty.REQUIRED == 'Y' ? '<span class="bx-authform-starrequired">*</span> ' : '')
 					+ BX.util.htmlspecialchars(currentProperty.NAME)
-					+ (currentProperty.DESCRIPTION.length ? ' <div class="h5 text-danger">' + BX.util.htmlspecialchars(currentProperty.DESCRIPTION) + '</div>' : '')
+					+ (currentProperty.DESCRIPTION.length ? ' <small>(' + BX.util.htmlspecialchars(currentProperty.DESCRIPTION) + ')</small>' : '')
 					+ '</label>';
 
 				currentLocation = location[0].output;
@@ -4738,7 +4755,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 										className: "form-check-input",
 										id: "radio" + currentType.ID,
 										checked: currentType.CHECKED == 'Y'},
-										props: {type: 'radio', name: 'PERSON_TYPE', value: currentType.ID}
+									props: {type: 'radio', name: 'PERSON_TYPE', value: currentType.ID}
 								}),
 								BX.create('LABEL', {
 									attrs: {
@@ -5566,7 +5583,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				{
 					serviceName = BX.create('LABEL', {
 						html: BX.util.htmlspecialchars(currentService.name)
-						+ (currentService.price ? ' (' + currentService.priceFormatted + ')' : '')
+							+ (currentService.price ? ' (' + currentService.priceFormatted + ')' : '')
 					});
 
 					if (i == 0)
@@ -5575,9 +5592,9 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					serviceNode = BX.create('DIV', {
 						props: {className: 'form-group bx-soa-pp-field'},
 						html: currentService.editControl
-						+ (currentService.description && currentService.description.length
-							? '<div class="bx-soa-service-small">' + BX.util.htmlspecialchars(currentService.description) + '</div>'
-							: '')
+							+ (currentService.description && currentService.description.length
+								? '<div class="bx-soa-service-small">' + BX.util.htmlspecialchars(currentService.description) + '</div>'
+								: '')
 					});
 
 					BX.prepend(serviceName, serviceNode);
@@ -5595,10 +5612,10 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 						children: [
 							BX.create('LABEL', {
 								html: currentService.editControl + BX.util.htmlspecialchars(currentService.name)
-								+ (currentService.price ? ' (' + currentService.priceFormatted + ')' : '')
-								+ (currentService.description && currentService.description.length
-									? '<div class="bx-soa-service-small">' + BX.util.htmlspecialchars(currentService.description) + '</div>'
-									: '')
+									+ (currentService.price ? ' (' + currentService.priceFormatted + ')' : '')
+									+ (currentService.description && currentService.description.length
+										? '<div class="bx-soa-service-small">' + BX.util.htmlspecialchars(currentService.description) + '</div>'
+										: '')
 							})
 						]
 					});
@@ -5697,7 +5714,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			label = BX.create('DIV', {
 				props: {
 					className: 'bx-soa-pp-company-graf-container'
-					+ (item.CALCULATE_ERRORS || deliveryCached && deliveryCached.CALCULATE_ERRORS ? ' bx-bd-waring' : '')},
+						+ (item.CALCULATE_ERRORS || deliveryCached && deliveryCached.CALCULATE_ERRORS ? ' bx-bd-waring' : '')},
 				children: labelNodes
 			});
 
@@ -6629,16 +6646,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					}
 				}
 
-				this.editPropsManagerConnect(propsNode);
-
-				this.editPropsItems(propsNode);
+				this.editPropsItems(propsNode, 1);
 				showPropMap && this.editPropsMap(propsNode);
-
-				if (this.params.HIDE_ORDER_DESCRIPTION !== 'Y')
-				{
-					this.editPropsComment(propsNode);
-				}
-
 				propsContent.appendChild(propsNode);
 				this.getBlockFooter(propsContent);
 
@@ -6661,12 +6670,13 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
 			propsNode = BX.create('DIV', {props: {className: 'row'}});
 
-
-			this.editPropsItems(propsNode);
-
+			this.editPropsManagerConnect(propsNode);
+			this.editPropsItems(propsNode, 2);
+			if (this.params.HIDE_ORDER_DESCRIPTION !== 'Y')
+			{
+				this.editPropsComment(propsNode);
+			}
 			activeNodeMode.appendChild(propsNode);
-
-
 		},
 
 		editFadePropsBlock: function()
@@ -6740,7 +6750,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			BX.bind(node.querySelector('.alert.alert-warning'), 'click', BX.proxy(this.showByClick, this));
 		},
 
-		editPropsItems: function(propsNode)
+		editPropsItems: function(propsNode, groupId)
 		{
 			if (!this.result.ORDER_PROP || !this.propertyCollection)
 				return;
@@ -6763,7 +6773,9 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					)
 						continue;
 
-					this.getPropertyRowNode(property, propsItemsContainer, false);
+					if(property.getGroupId() == groupId){
+						this.getPropertyRowNode(property, propsItemsContainer, false);
+					}
 				}
 			}
 
