@@ -2552,13 +2552,7 @@
 				);
 
 			}
-
-			BX(this.visual.BUY_ID).innerHTML = BX.message('BASKET_IN_QUANTITY').replace("N",this.basketData.sum);
-
-
-
-
-
+			
 		},
 
 		basketRedirect: function()
