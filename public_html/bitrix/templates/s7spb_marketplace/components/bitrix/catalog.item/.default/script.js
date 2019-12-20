@@ -2052,7 +2052,7 @@
 
 		setPrice: function()
 		{
-			var obData, price;
+			var obData, price, priceFormat;
 
 			if (this.obQuantity)
 			{
@@ -2067,7 +2067,9 @@
 			{
 				if (price)
 				{
-					BX.adjust(this.obPrice, {html: BX.Currency.currencyFormat(price.RATIO_PRICE, price.CURRENCY, true)});
+					priceFormat = parseInt(price.RATIO_PRICE);
+
+					BX.adjust(this.obPrice, {html: BX.Currency.currencyFormat(priceFormat, price.CURRENCY, true)});
 				}
 				else
 				{
@@ -2096,9 +2098,15 @@
 				{
 					if (price && this.obQuantity && this.obQuantity.value != this.stepQuantity)
 					{
+						priceFormat = price.PRICE * this.obQuantity.value * this.obPrice.dataset.pcs;
+						priceFormat = Math.ceil(priceFormat);
+
+						console.info(this.obPrice.dataset.pcs);
+
+
 						BX.adjust(this.obPriceTotal, {
 							html: BX.message('PRICE_TOTAL_PREFIX') + ' <strong>'
-							+ BX.Currency.currencyFormat(price.PRICE * this.obQuantity.value, price.CURRENCY, true)
+							+ BX.Currency.currencyFormat(priceFormat, price.CURRENCY, true)
 							+ '</strong>',
 							style: {display: ''}
 						});

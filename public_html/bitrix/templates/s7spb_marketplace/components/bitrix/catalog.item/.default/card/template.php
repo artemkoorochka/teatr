@@ -161,7 +161,9 @@ use \Bitrix\Main\Localization\Loc;
 			{
 				case 'price': ?>
 					<div class="product-item-info-container product-item-price-container" data-entity="price-block">
-						<span class="product-item-price-current" id="<?=$itemIds['PRICE']?>">
+						<span class="product-item-price-current"
+                              data-pcs="<?=$item["PROPERTIES"]["Master_CTN_PCS"]["VALUE"]?>"
+                              id="<?=$itemIds['PRICE']?>">
 							<?
 							if (!empty($price))
 							{
@@ -178,7 +180,10 @@ use \Bitrix\Main\Localization\Loc;
 								}
 								else
 								{
-									echo $price['PRINT_RATIO_PRICE'];
+                                    //$price['PRINT_RATIO_PRICE'] = intval(trim(substr($price['PRINT_RATIO_PRICE'], 0, -4)));
+                                    $price["RATIO_PRICE"] = round($price["RATIO_PRICE"], 0);
+                                    $price['PRINT_RATIO_PRICE'] = CCurrencyLang::CurrencyFormat($price["RATIO_PRICE"], $price["CURRENCY"]);
+                                    echo $price['PRINT_RATIO_PRICE'];
 								}
 							}
 							?>
@@ -267,6 +272,7 @@ use \Bitrix\Main\Localization\Loc;
 							?>
 							<div class="product-item-info-container product-item-hidden" data-entity="quantity-block">
 								<div class="product-item-amount">
+                                    <div class="product-item-amount-description-container"><?=GetMessage("CATALOG_MEASURE_PACK", array("PCS" => $actualItem["PROPERTIES"]["Master_CTN_PCS"]["VALUE"]))?></div>
 									<div class="product-item-amount-field-container">
 										<span class="product-item-amount-field-btn-minus no-select" id="<?=$itemIds['QUANTITY_DOWN']?>"></span>
 										<input class="product-item-amount-field" id="<?=$itemIds['QUANTITY']?>"
@@ -278,11 +284,16 @@ use \Bitrix\Main\Localization\Loc;
                                                name="<?=$arParams['PRODUCT_QUANTITY_VARIABLE']?>"
 											   value="<?=$MOQ?>">
 										<span class="product-item-amount-field-btn-plus no-select" id="<?=$itemIds['QUANTITY_UP']?>"></span>
+                                        <span><?=Loc::getMessage("CATALOG_MEASURE_PACK_NAME")?></span>
 										<span class="product-item-amount-description-container">
-											<span id="<?=$itemIds['QUANTITY_MEASURE']?>">
-												<?=$actualItem['ITEM_MEASURE']['TITLE']?>
-											</span>
-											<span id="<?=$itemIds['PRICE_TOTAL']?>"></span>
+											<span id="<?=$itemIds['PRICE_TOTAL']?>">
+                                                <?=Loc::getMessage("CT_BCS_CATALOG_PRICE_TOTAL_PREFIX")?>
+                                                <strong><?
+                                                    $price["RATIO_SUM"] = round($price["RATIO_PRICE"], 0) * $actualItem["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] * $MOQ;
+                                                    $price['PRINT_RATIO_SUM'] = CCurrencyLang::CurrencyFormat($price["RATIO_SUM"], $price["CURRENCY"]);
+                                                    echo $price['PRINT_RATIO_SUM'];
+                                                    ?></strong>
+                                            </span>
 										</span>
 									</div>
 								</div>
@@ -297,6 +308,7 @@ use \Bitrix\Main\Localization\Loc;
 							?>
 							<div class="product-item-info-container product-item-hidden" data-entity="quantity-block">
 								<div class="product-item-amount">
+                                    <div class="product-item-amount-description-container"><?=GetMessage("CATALOG_MEASURE_PACK", array("PCS" => $actualItem["PROPERTIES"]["Master_CTN_PCS"]["VALUE"]))?></div>
 									<div class="product-item-amount-field-container">
 										<span class="product-item-amount-field-btn-minus no-select" id="<?=$itemIds['QUANTITY_DOWN']?>"></span>
 										<input class="product-item-amount-field" id="<?=$itemIds['QUANTITY']?>" type="number"
@@ -304,8 +316,14 @@ use \Bitrix\Main\Localization\Loc;
 											value="<?=$measureRatio?>">
 										<span class="product-item-amount-field-btn-plus no-select" id="<?=$itemIds['QUANTITY_UP']?>"></span>
 										<span class="product-item-amount-description-container">
-											<span id="<?=$itemIds['QUANTITY_MEASURE']?>"><?=$actualItem['ITEM_MEASURE']['TITLE']?></span>
-											<span id="<?=$itemIds['PRICE_TOTAL']?>"></span>
+											<span id="<?=$itemIds['PRICE_TOTAL']?>">
+                                                <?=Loc::getMessage("CT_BCS_CATALOG_PRICE_TOTAL_PREFIX")?>
+                                                <strong><?
+                                                    $price["RATIO_SUM"] = round($price["RATIO_PRICE"], 0) * $actualItem["PROPERTIES"]["Master_CTN_PCS"]["VALUE"] * $MOQ;
+                                                    $price['PRINT_RATIO_SUM'] = CCurrencyLang::CurrencyFormat($price["RATIO_SUM"], $price["CURRENCY"]);
+                                                    echo $price['PRINT_RATIO_SUM'];
+                                                    ?></strong>
+                                            </span>
 										</span>
 									</div>
 								</div>
