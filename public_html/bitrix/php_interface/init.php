@@ -1,8 +1,8 @@
 <?
 use Bitrix\Main\EventManager,
     Bitrix\Main\Loader,
-    Bitrix\Sale\Location\LocationTable,
-    Studio7spb\Marketplace\SaleAddressTable;
+    Studio7spb\Marketplace\SaleAddressTable,
+    Studio7spb\Marketplace\RequisitsTable;
 
 $eventManager = EventManager::getInstance();
 
@@ -10,11 +10,20 @@ $eventManager = EventManager::getInstance();
  * order events
  */
 $eventManager->AddEventHandler("sale", "OnSaleComponentOrderOneStepOrderProps", "OnSaleComponentOrderOneStepOrderPropsHandler");
-$eventManager->AddEventHandler("iblock", "OnAfterIBlockElementAdd", "OnAfterIBlockElementUpdateHandler");
-$eventManager->AddEventHandler("iblock", "OnAfterIBlockElementUpdate", "OnAfterIBlockElementUpdateHandler");
+$eventManager->AddEventHandler("sale", "OnBeforeOrderAdd", "OnBeforeOrderAddHandler");
 
+/**
+ * Iblock element events
+ */
+$eventManager->AddEventHandler("iblock", "OnAfterIBlockElementAdd", array("lansyPriceGenerator", "OnAfterIBlockElementUpdateHandler"));
+$eventManager->AddEventHandler("iblock", "OnAfterIBlockElementUpdate", array("lansyPriceGenerator", "OnAfterIBlockElementUpdateHandler"));
 
-// <editor-fold defaultstate="Component one step order. TODO Check and delete that">
+/**
+ * callbacks
+ */
+include "include/lansy/lansy.price.generator.php";
+
+// <editor-fold defaultstate="Component one step order.">
 /**
  * При смене профиля меняем и адресс в свойстве заказа
  * @param $arResult
@@ -28,6 +37,9 @@ $eventManager->AddEventHandler("iblock", "OnAfterIBlockElementUpdate", "OnAfterI
 function OnSaleComponentOrderOneStepOrderPropsHandler(&$arResult, &$arUserResult, $arParams) {
     global $USER;
 
+    /**
+     * Location injection
+     */
     if($arUserResult["PROFILE_CHANGE"] == "Y"){
         $collect = array();
 
@@ -43,11 +55,7 @@ function OnSaleComponentOrderOneStepOrderPropsHandler(&$arResult, &$arUserResult
             }
         }
 
-        if(
-            $USER->GetID() &&
-            !empty($collect) &&
-            Loader::includeModule("sale")
-        ){
+        if($USER->GetID() && !empty($collect)){
             $adress = SaleAddressTable::getList(array(
                 "filter" => array(
                     "PROFILE_ID" => $arUserResult["PROFILE_ID"],
@@ -56,93 +64,61 @@ function OnSaleComponentOrderOneStepOrderPropsHandler(&$arResult, &$arUserResult
             ));
             if($adress = $adress->fetch())
             {
-                // set location property
-                $location = LocationTable::getList(array(
-                    "filter" => array(
-                        "ID" => $adress["LOCATION"]
-                    ),
-                    "select" => array("ID", "CODE")
-                ));
-                if($location = $location->fetch()){
-                    foreach ($collect as $item) {
-                        $arUserResult["ORDER_PROP"][$item] = $location["CODE"];
-                    }
-                }
-                // set props from ORDER_PROPS field
-                $adress["ORDER_PROPS"] = unserialize($adress["ORDER_PROPS"]);
+                //$arUserResult["USER_VALS"]["ORDER_PROP"][3] = $adress["LOCATION"];
                 foreach ($arResult["ORDER_PROP"]["USER_PROPS_Y"] as $property){
-                    if(!empty($adress["ORDER_PROPS"][$property["CODE"]])){
-                        $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["ORDER_PROPS"][$property["CODE"]];
-                    }
+                    $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["LOCATION"];
                 }
                 foreach ($arResult["ORDER_PROP"]["USER_PROPS_N"] as $key=>$property){
-                    if(!empty($adress["ORDER_PROPS"][$property["CODE"]])){
-                        $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["ORDER_PROPS"][$property["CODE"]];
-                    }
+                    $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["LOCATION"];
                 }
             }
         }
+
     }
 
+    /**
+     * User requisits feature
+     */
+    if($USER->IsAuthorized()){
+        // get user requisits
+        $userRequisits = RequisitsTable::getList(array(
+            "filter" => array(
+                "USER_ID" => $USER->GetID()
+            )
+        ))->fetch();
 
-
-}
-// </editor-fold>
-
-// <editor-fold defaultstate="After iblock element add or Update function">
-
-/**
- * @param $arFields
- */
-function OnAfterIBlockElementUpdateHandler(&$arFields)
-{
-    if($arFields["IBLOCK_ID"] == 2){
-        if($arFields["RESULT"]){
-
-            $groups = array(
-                2, // FOB LC
-                3, // стандарт
-                4, // срочная доставка
-                5, // ExWork,RMB
-                6 // FOB
-            );
-
-            if($arFields["ID"] == 2529){
-
-                $prices = CPrice::GetList(array(), array("PRODUCT_ID" => $arFields["ID"]));
-
-                while($price = $prices->Fetch())
-                {
-                    if(in_array($price["CATALOG_GROUP_ID"], $groups)){
-                        $arFields = Array(
-                            "PRODUCT_ID" => $price["ID"],
-                            "CATALOG_GROUP_ID" => $price["CATALOG_GROUP_ID"],
-                            "PRICE" => 29.95,
-                            "CURRENCY" => "USD"
-                        );
-
-                        //$result = CPrice::Update($price["ID"], array("PRICE" => $arFields));
-
-                    }else{
-                        //CPrice::Add(array());
-                    }
-
-                }
-
+        foreach ($arResult["ORDER_PROP"]["USER_PROPS_N"] as $key=>$property){
+            if(empty($property["VALUE"])){
+                $arUserResult["ORDER_PROP"][$property["ID"]] = $userRequisits[str_replace("COMPANY_", "", $property["CODE"])];
             }
-
-
-
         }
     }
 
 }
 // </editor-fold>
 
+// <editor-fold defaultstate="OnOrderAdd после добавления заказа">
 
-/**
- * Developer tools
- */
+function OnBeforeOrderAddHandler(&$arFields){
+
+    $countProps = count($arFields["ORDER_PROP"]);
+    $countPropsFill = 0;
+    foreach ($arFields["ORDER_PROP"] as $value)
+    {
+        if(!empty($value)){
+            $countPropsFill++;
+        }
+    }
+    if($countProps > $countPropsFill){
+        $arFields["USER_DESCRIPTION"] = "Покупатель запросил обратный звонок. Номер " . $arFields["ORDER_PROP"][22];
+    }
+
+}
+
+// </editor-fold>
+
+// <editor-fold defaultstate="Developer tools">
+
 if (!function_exists("d") )
 {
     function d($value, $type="pre")
@@ -157,3 +133,5 @@ if (!function_exists("d") )
         }
     }
 }
+
+// </editor-fold>
