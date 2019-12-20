@@ -936,7 +936,7 @@
 
 				this.obPopupWin.setTitleBar($(this.obQuantity).data("title"));
 				this.obPopupWin.setContent(popupContent);
-				this.obPopupWin.show();
+				//this.obPopupWin.show();
 				return false;
 			}
 
@@ -984,7 +984,7 @@
 
 				this.obPopupWin.setTitleBar($(this.obQuantity).data("title"));
 				this.obPopupWin.setContent(popupContent);
-				this.obPopupWin.show();
+				//this.obPopupWin.show();
 				return false;
 			}
 
@@ -2101,9 +2101,6 @@
 						priceFormat = price.PRICE * this.obQuantity.value * this.obPrice.dataset.pcs;
 						priceFormat = Math.ceil(priceFormat);
 
-						console.info(this.obPrice.dataset.pcs);
-
-
 						BX.adjust(this.obPriceTotal, {
 							html: BX.message('PRICE_TOTAL_PREFIX') + ' <strong>'
 							+ BX.Currency.currencyFormat(priceFormat, price.CURRENCY, true)
@@ -2264,7 +2261,7 @@
 			this.obPopupWin.setTitleBar(BX.message('COMPARE_TITLE'));
 			this.obPopupWin.setContent(popupContent);
 			this.obPopupWin.setButtons(popupButtons);
-			this.obPopupWin.show();
+			//this.obPopupWin.show();
 		},
 
 		compareDeleteResult: function()
@@ -2470,11 +2467,7 @@
 				return;
 			}
 
-			// check recommendation
-			if (this.product && this.product.id && this.bigData)
-			{
-				this.rememberProductRecommendation();
-			}
+			BX.addClass(this.visual.BUY_ID, "in-basket");
 
 			this.initBasketUrl();
 			this.fillBasketProps();
@@ -2519,7 +2512,7 @@
 								}
 							})
 						]);
-						this.obPopupWin.show();
+						//this.obPopupWin.show();
 					}
 					else
 					{
@@ -2534,107 +2527,38 @@
 
 		basketResult: function(arResult)
 		{
-			var strContent = '',
-				strPict = '',
-				successful,
-				buttons = [];
+			var i;
 
-			if (this.obPopupWin)
-				this.obPopupWin.close();
+			// light out
+			BX.addClass(this.visual.BUY_ID, "in-basket");
 
-			if (!BX.type.isPlainObject(arResult))
-				return;
-
-			successful = arResult.STATUS === 'OK';
-
-			if (successful)
-			{
-				this.setAnalyticsDataLayer('addToCart');
+			// calculate sum
+			if(this.basketData.sum == null){
+				this.basketData.sum = 0;
 			}
+			this.basketData.sum += this.basketParams.quantity / this.obPrice.dataset.pcs;
 
-			if (successful && this.basketAction === 'BUY')
-			{
-				this.basketRedirect();
-			}
-			else
-			{
-				this.initPopupWindow();
+			var calculate = BX.findChildren(BX(this.visual.BASKET_ACTIONS_ID), {tagName: 'div'}, false);
 
-				if (successful)
-				{
-					BX.onCustomEvent('OnBasketChange');
-
-					if  (BX.findParent(this.obProduct, {className: 'bx_sale_gift_main_products'}, 10))
-					{
-						BX.onCustomEvent('onAddToBasketMainProduct', [this]);
-					}
-
-					switch (this.productType)
-					{
-						case 1: // product
-						case 2: // set
-							strPict = this.product.pict.SRC;
-							break;
-						case 3: // sku
-							strPict = (this.offers[this.offerNum].PREVIEW_PICTURE ?
-									this.offers[this.offerNum].PREVIEW_PICTURE.SRC :
-									this.defaultPict.pict.SRC
-							);
-							break;
-					}
-
-					strContent = '<div style="width: 100%; margin: 0; text-align: center;"><img src="'
-						+ strPict + '" height="130" style="max-height:130px"><p>' + this.product.name + '</p></div>';
-
-					if (this.showClosePopup)
-					{
-						buttons = [
-							new BasketButton({
-								text: BX.message("BTN_MESSAGE_BASKET_REDIRECT"),
-								events: {
-									click: BX.delegate(this.basketRedirect, this)
-								},
-								style: {marginRight: '10px'}
-							}),
-							new BasketButton({
-								text: BX.message("BTN_MESSAGE_CLOSE_POPUP"),
-								events: {
-									click: BX.delegate(this.obPopupWin.close, this.obPopupWin)
-								}
-							})
-						];
-					}
-					else
-					{
-						buttons = [
-							new BasketButton({
-								text: BX.message("BTN_MESSAGE_BASKET_REDIRECT"),
-								events: {
-									click: BX.delegate(this.basketRedirect, this)
-								}
-							})
-						];
-					}
+			if (calculate && calculate.length) {
+				for (i = 0; i < calculate.length; i++) {
+					BX(calculate[i]).innerHTML = BX.message('BASKET_IN_QUANTITY').replace("N",this.basketData.sum);
 				}
-				else
-				{
-					strContent = '<div style="width: 100%; margin: 0; text-align: center;"><p>'
-						+ (arResult.MESSAGE ? arResult.MESSAGE : BX.message('BASKET_UNKNOWN_ERROR'))
-						+ '</p></div>';
-					buttons = [
-						new BasketButton({
-							text: BX.message('BTN_MESSAGE_CLOSE'),
-							events: {
-								click: BX.delegate(this.obPopupWin.close, this.obPopupWin)
-							}
-						})
-					];
-				}
-				this.obPopupWin.setTitleBar(successful ? BX.message('TITLE_SUCCESSFUL') : BX.message('TITLE_ERROR'));
-				this.obPopupWin.setContent(strContent);
-				this.obPopupWin.setButtons(buttons);
-				this.obPopupWin.show();
+			}else{
+				BX(this.visual.BASKET_ACTIONS_ID).appendChild(
+					BX.create('div', {
+						text: BX.message('BASKET_IN_QUANTITY').replace("N",this.basketData.sum)
+					})
+				);
+
 			}
+
+			BX(this.visual.BUY_ID).innerHTML = BX.message('BASKET_IN_QUANTITY').replace("N",this.basketData.sum);
+
+
+
+
+
 		},
 
 		basketRedirect: function()
