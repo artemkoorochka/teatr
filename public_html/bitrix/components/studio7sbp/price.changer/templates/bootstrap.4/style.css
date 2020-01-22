@@ -1,0 +1,26 @@
+.price-changer{
+    overflow: hidden;
+    border-radius: 13px;
+    background-color: #e9ecef;
+    vertical-align: baseline;
+}
+#basket .price-changer .btn{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    height: 26px;
+    color: #000;
+    font-size: 16px;
+}
+#basket .price-changer .btn:hover{
+    color: #666;
+}
+#basket .price-changer .btn:focus{
+    box-shadow: none;
+}
+#basket .price-changer .btn-secondary{
+    background-color: #e9ecef;
+
+}
+#basket .price-changer .btn-primary{
+    border-radius: 13px;
+}

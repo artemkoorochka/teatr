@@ -1,0 +1,42 @@
+.price-switcher{
+    overflow: hidden;
+    border-radius: 13px;
+    background-color: #e9ecef;
+    height: 26px;
+    width: 240px;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    position: relative;
+}
+.price-switcher .active-flag{
+    width: 80px;
+    height: 26px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #ff6f00;
+    border-radius: 13px;
+    z-index: 1;
+}
+.price-switcher .active-flag-1{
+    left: 80px;
+}
+.price-switcher .active-flag-2{
+    left: 160px;
+}
+.price-switcher a{
+    color: #000;
+    text-decoration: none;
+    height: 26px;
+    line-height: 26px;
+    width: 80px;
+    float: left;
+    margin: 0;
+    padding: 0;
+    border: 0 none;
+    position: relative;
+    z-index: 2;
+    font-size: 16px;
+    text-align: center;
+}
