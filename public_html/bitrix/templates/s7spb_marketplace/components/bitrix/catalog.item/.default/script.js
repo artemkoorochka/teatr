@@ -936,7 +936,7 @@
 
 				this.obPopupWin.setTitleBar($(this.obQuantity).data("title"));
 				this.obPopupWin.setContent(popupContent);
-				//this.obPopupWin.show();
+				this.obPopupWin.show();
 				return false;
 			}
 
@@ -984,7 +984,7 @@
 
 				this.obPopupWin.setTitleBar($(this.obQuantity).data("title"));
 				this.obPopupWin.setContent(popupContent);
-				//this.obPopupWin.show();
+				this.obPopupWin.show();
 				return false;
 			}
 
@@ -2098,6 +2098,8 @@
 				{
 					if (price && this.obQuantity && this.obQuantity.value != this.stepQuantity)
 					{
+						$("#" + this.visual.ID).find(".measure-pack-nn").text(this.obQuantity.value * this.obPrice.dataset.pcs);
+
 						priceFormat = price.PRICE * this.obQuantity.value * this.obPrice.dataset.pcs;
 						priceFormat = Math.ceil(priceFormat);
 
@@ -2261,7 +2263,7 @@
 			this.obPopupWin.setTitleBar(BX.message('COMPARE_TITLE'));
 			this.obPopupWin.setContent(popupContent);
 			this.obPopupWin.setButtons(popupButtons);
-			//this.obPopupWin.show();
+			this.obPopupWin.show();
 		},
 
 		compareDeleteResult: function()
@@ -2467,8 +2469,6 @@
 				return;
 			}
 
-			BX.addClass(this.visual.BUY_ID, "in-basket");
-
 			this.initBasketUrl();
 			this.fillBasketProps();
 
@@ -2527,15 +2527,23 @@
 
 		basketResult: function(arResult)
 		{
+
 			var i;
 
 			// light out
-			BX.addClass(this.visual.BUY_ID, "in-basket");
+			//BX.addClass(this.visual.BUY_ID, "in-basket");
 
 			// calculate sum
 			if(this.basketData.sum == null){
+
 				this.basketData.sum = 0;
+
+				if(this.obPrice.dataset.cart > 0){
+					this.basketData.sum += this.obPrice.dataset.cart / this.obPrice.dataset.pcs;
+				}
+
 			}
+
 			this.basketData.sum += this.basketParams.quantity / this.obPrice.dataset.pcs;
 
 			var calculate = BX.findChildren(BX(this.visual.BASKET_ACTIONS_ID), {tagName: 'div'}, false);
@@ -2552,7 +2560,9 @@
 				);
 
 			}
-			
+
+			//BX(this.visual.BUY_ID).innerHTML = BX.message('BASKET_IN_QUANTITY').replace("N",this.basketData.sum);
+			BX.onCustomEvent('OnBasketChange');
 		},
 
 		basketRedirect: function()
@@ -2592,7 +2602,7 @@ function deleteFavorite(t, id) {
 	request.then(function(response){
 		if(response.status == 'success') {
 
-			s7market.updateBasket();
+			BX.onCustomEvent('OnBasketChange');
 		}
 	});
 }
@@ -2618,7 +2628,7 @@ function toggleFavorite(t, id) {
 	request.then(function(response){
 		if(response.status == 'success') {
 
-			s7market.updateBasket();
+			BX.onCustomEvent('OnBasketChange');
 		}
 	});
 }
