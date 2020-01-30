@@ -343,22 +343,46 @@ class lansyPriceGenerator
 
 
     function OnGetOptimalPriceHandler($productID, $quantity = 1, $arUserGroups = array(), $renewal = "N", $arPrices = array(), $siteID = false, $arDiscountCoupons = false){
-
-        $price = intval($_REQUEST["price"]);
+        // Проверить права на
+        $price = intval($_SESSION["USER_CATALOG_GROUP"]);
         if($price > 0){
             $arOptPrices = CCatalogProduct::GetByIDEx($productID);
-            
-            # change basket items
-            $arResult["PRICE"] = array(
-                "ID" => $productID,
-                'CATALOG_GROUP_ID' => $price,
-                'PRICE' => $arOptPrices['PRICES'][$price]['PRICE'],
-                'CURRENCY' => $arOptPrices['PRICES'][$price]['CURRENCY'],
-                'ELEMENT_IBLOCK_ID' => $arOptPrices["IBLOCK_ID"],
-                'VAT_INCLUDED' => "Y",
+
+            return array(
+                'PRICE' => array(
+                    "ID" => $productID,
+                    'ELEMENT_IBLOCK_ID' => $arOptPrices["IBLOCK_ID"],
+                    'CATALOG_GROUP_ID' => $price,
+                    'PRICE' => $arOptPrices['PRICES'][$price]['PRICE'],
+                    'CURRENCY' => $arOptPrices['PRICES'][$price]['CURRENCY']
+                    // Умножить на коефициент НДС
+                    // Включать ли НДС
+                    //"VAT_RATE" => 7,
+                    //"VAT_INCLUDED" => "N",
+
+                )
             );
-            return $arResult;
+
         }
+    }
+
+    function OnGetOptimalPriceResultHandler(&$arResult){
+        // OnGetOptimalPriceResult
+        // https://dev.1c-bitrix.ru/community/blogs/vws/work-in-pairs.php
+
+        $arResult["PRICE"]["PRICE"] == 666;
+        $arResult["PRICE"]["CURRENCY"] == "RUB";
+        $arResult["RESULT_PRICE"]["PRICE_TYPE_ID"] == 3;
+        $arResult["RESULT_PRICE"]["BASE_PRICE"] == 666;
+        $arResult["RESULT_PRICE"]["DISCOUNT_PRICE"] == 666;
+        $arResult["RESULT_PRICE"]["CURRENCY"] == "RUB";
+
+        AddMessage2Log($arResult, "OnGetOptimalPriceResult");
+
+
 
     }
+
+
+
 }
