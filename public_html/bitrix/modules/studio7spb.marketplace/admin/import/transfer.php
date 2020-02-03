@@ -104,10 +104,12 @@ $arResult["CLEAN_IMPORT_TABLE"] = '<table cellpadding="0" cellspacing="0" border
     '</tr>'.
     '</table>';
 
-$arResult["CLEAN_ANALIZE_TABLE"] = '<table cellpadding="0" id="' . $arParams["START_ANALIZE"] . '-info" cellspacing="0" border="0" width="100%" class="internal">'.
+$arResult["CLEAN_ANALIZE_TABLE"] = '<table cellpadding="0" cellspacing="0" border="0" width="100%" class="internal">'.
     '<tr class="heading">'.
-    '<td>Текущее действие</td>'.
-    '<td width="1%">&nbsp;</td>'.
+    '<td>Текущий процесс</td>'.
+    '</tr>'.
+    '<tr>'.
+    '<td id="' . $arParams["START_ANALIZE"] . '-info">&nbsp;</td>'.
     '</tr>'.
     '</table>';
 // </editor-fold>
@@ -358,12 +360,8 @@ else{
 
                 if (strCurrentAction != 'null')
                 {
-                    oTable = document.getElementById('<?=$arParams["START_ANALIZE"]?>-info');
-                    oRow = oTable.insertRow(-1);
-                    oCell = oRow.insertCell(-1);
-                    oCell.innerHTML = strCurrentAction;
-                    oCell = oRow.insertCell(-1);
-                    oCell.innerHTML = '';
+                    resultTableInfo = document.getElementById('<?=$arParams["START_ANALIZE"]?>-info');
+                    resultTableInfo.innerHTML = strCurrentAction;
                 }
 
                 if (strNextRequest && document.getElementById('<?=$arParams["START_ANALIZE"]?>').disabled)
