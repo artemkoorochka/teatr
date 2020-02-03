@@ -36,15 +36,17 @@ if($_REQUEST['work_start'] && check_bitrix_sessid())
 
     $p = round(100*$leftBorderCnt/$allCnt, 2);
 
-    echo 'CurrentStatus = Array('.$p.',"'.($p < 100 ? '&lastid='.$lastID : '').'","Обрабатывается товар с ID #'.$lastID.'");';
+    echo 'CurrentStatus = Array('.$p.',"'.($p < 100 ? '&lastid='.$lastID : '').'","Обрабаботан товар №: '.$lastID.'");';
 
     die();
 }
 
-$clean_test_table = '<table id="result_table" cellpadding="0" cellspacing="0" border="0" width="100%" class="internal">'.
+$clean_test_table = '<table id="result-table" cellpadding="0" cellspacing="0" border="0" width="100%" class="internal">'.
     '<tr class="heading">'.
-    '<td>Текущее действие</td>'.
-    '<td width="1%">&nbsp;</td>'.
+    '<td>Текущий процесс</td>'.
+    '</tr>'.
+    '<tr>'.
+    '<td id="result-table-info">&nbsp;</td>'.
     '</tr>'.
     '</table>';
 
@@ -96,16 +98,12 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_aft
                 document.getElementById('percent').innerHTML = iPercent + '%';
                 document.getElementById('indicator').style.width = iPercent + '%';
 
-                document.getElementById('status').innerHTML = 'Работаю...';
+                document.getElementById('status').innerHTML = 'Импорт-прогрес...';
 
                 if (strCurrentAction != 'null')
                 {
-                    oTable = document.getElementById('result_table');
-                    oRow = oTable.insertRow(-1);
-                    oCell = oRow.insertCell(-1);
-                    oCell.innerHTML = strCurrentAction;
-                    oCell = oRow.insertCell(-1);
-                    oCell.innerHTML = '';
+                    resultTableInfo = document.getElementById('result-table-info');
+                    resultTableInfo.innerHTML = strCurrentAction;
                 }
 
                 if (strNextRequest && document.getElementById('work_start').disabled)
