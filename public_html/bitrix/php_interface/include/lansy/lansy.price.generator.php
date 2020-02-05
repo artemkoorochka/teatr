@@ -343,7 +343,7 @@ class lansyPriceGenerator
 
 
     function OnGetOptimalPriceHandler($productID, $quantity = 1, $arUserGroups = array(), $renewal = "N", $arPrices = array(), $siteID = false, $arDiscountCoupons = false){
-        // Проверить права на
+        // Идентификатор цены
         $price = intval($_SESSION["USER_CATALOG_GROUP"]);
         if($price > 0){
             $arOptPrices = CCatalogProduct::GetByIDEx($productID);
@@ -376,13 +376,6 @@ class lansyPriceGenerator
         $arResult["RESULT_PRICE"]["BASE_PRICE"] == 666;
         $arResult["RESULT_PRICE"]["DISCOUNT_PRICE"] == 666;
         $arResult["RESULT_PRICE"]["CURRENCY"] == "RUB";
-
-        AddMessage2Log($arResult, "OnGetOptimalPriceResult");
-
-
-
     }
-
-
 
 }
