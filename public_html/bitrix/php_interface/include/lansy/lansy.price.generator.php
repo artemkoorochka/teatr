@@ -59,6 +59,38 @@ class lansyPriceGenerator
             CPrice::Add($arFields);
         }
 
+        #Конвертировать эту же цену и записать сюда $PRICE_TYPE_ID = 1; с доллара в рубль
+        $curs = Studio7spb\Marketplace\ImportSettingsTable::getList(array(
+            "filter" => array("CODE" => "AZ1")
+        ));
+        if($curs = $curs->fetch()){
+            if($curs["VALUE"] > 0){
+                $PRICE_TYPE_ID = 1;
+                $arFields = Array(
+                    "PRODUCT_ID" => $PRODUCT_ID,
+                    "CATALOG_GROUP_ID" => $PRICE_TYPE_ID,
+                    "PRICE" => $price["AN"]["RESULT"] * $curs["VALUE"],
+                    "CURRENCY" => "RUB"
+                );
+
+                $res = CPrice::GetList(
+                    array(),
+                    array(
+                        "PRODUCT_ID" => $PRODUCT_ID,
+                        "CATALOG_GROUP_ID" => $PRICE_TYPE_ID
+                    )
+                );
+
+                if ($arr = $res->Fetch())
+                {
+                    CPrice::Update($arr["ID"], $arFields);
+                }
+                else
+                {
+                    CPrice::Add($arFields);
+                }
+            }
+        }
     }
 
     /**
@@ -277,38 +309,33 @@ class lansyPriceGenerator
         return $arResult;
     }
 
-
+    /**
+     * Fill FACTORY && TRADE_MARK
+     * @param $element
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
     function setFactory($element){
-        $factory = "Other";
-
-        // check in spravochnik
-        CModule::IncludeModule("highloadblock");
-
-        // prepare
-        $hlblock = Highloadblock\HighloadBlockTable::getById(6)->fetch();
-        $hlEntity = Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-        $entDataClass = $hlEntity->getDataClass();
-        $sTableID = 'tbl_'.$hlblock['TABLE_NAME'];
-
-        $rsData = $entDataClass::getList(array(
-            "select" => array('UF_NAME'),
-            "filter" => array("UF_NAME" => $element["ELEMENT"]["PROPERTY_FACTORY_VALUE"]),
-            "order" => array("UF_NAME"=>"ASC")
+        CModule::IncludeModule("iblock");
+        $factory = \Bitrix\Iblock\ElementTable::getList(array(
+            "filter" => array(
+                "IBLOCK_ID" => 1,
+                "NAME" => $element["ELEMENT"]["PROPERTY_FACTORY_VALUE"]
+            ),
+            "select" => array("ID", "NAME")
         ));
-        $rsData = new CDBResult($rsData, $sTableID);
-        if($arRes = $rsData->Fetch()){
-            $factory = $arRes["UF_NAME"];
+        if($factory = $factory->fetch()){
+            CIBlockElement::SetPropertyValuesEx($element["ELEMENT"]["ID"], $element["ELEMENT"]["IBLOCK_ID"], array(
+                "TRADE_MARK" => $factory["ID"],
+                "FACTORY" => $factory["NAME"]
+            ));
+        }else{
+            CIBlockElement::SetPropertyValuesEx($element["ELEMENT"]["ID"], $element["ELEMENT"]["IBLOCK_ID"], array(
+                "TRADE_MARK" => 2534,
+                "FACTORY" => "Other"
+            ));
         }
-
-        CIBlockElement::SetPropertyValues($element["ELEMENT"]["ID"], $element["ELEMENT"]["IBLOCK_ID"], $factory, "FACTORY");
-
-        // TRADE_MARK
-        // 2534
-        if(!$element["ELEMENT"]["PROPERTY_TRADE_MARK_VALUE"]){
-            CIBlockElement::SetPropertyValues($element["ELEMENT"]["ID"], $element["ELEMENT"]["IBLOCK_ID"], 2534, "TRADE_MARK");
-        }
-
-
     }
 
     /**
@@ -330,7 +357,6 @@ class lansyPriceGenerator
             "order" => array("UF_NAME"=>"ASC")
         ));
         $rsData = new CDBResult($rsData, $sTableID);
-        AddMessage2Log($rsData->SelectedRowsCount());
         if($arRes = $rsData->Fetch()){
 
             CIBlockElement::SetPropertyValues($element["ELEMENT"]["ID"], $element["ELEMENT"]["IBLOCK_ID"], $arRes["UF_POSHLINA"], "POSLINA");
@@ -345,8 +371,39 @@ class lansyPriceGenerator
     function OnGetOptimalPriceHandler($productID, $quantity = 1, $arUserGroups = array(), $renewal = "N", $arPrices = array(), $siteID = false, $arDiscountCoupons = false){
         // Идентификатор цены
         $price = intval($_SESSION["USER_CATALOG_GROUP"]);
+
         if($price > 0){
+
             $arOptPrices = CCatalogProduct::GetByIDEx($productID);
+
+            //if(CSite::InDir(SITE_DIR . "order/")){
+            if(true){
+                // подменяем на конвертированную цену
+                if($price == 6){
+                    //$price = 1;
+                    $_SESSION["SALE_USER_CURRENCY"] = "RUB";
+
+                }
+
+                AddMessage2Log($price, "подменяем на конвертированную цену");
+                AddMessage2Log($arOptPrices['PRICES'], "arOptPrices");
+                AddMessage2Log(array(
+                    'PRICE' => array(
+                        "ID" => $productID,
+                        'ELEMENT_IBLOCK_ID' => $arOptPrices["IBLOCK_ID"],
+                        'CATALOG_GROUP_ID' => $price,
+                        'PRICE' => $arOptPrices['PRICES'][$price]['PRICE'],
+                        'CURRENCY' => $arOptPrices['PRICES'][$price]['CURRENCY']
+                        // Умножить на коефициент НДС
+                        // Включать ли НДС
+                        //"VAT_RATE" => 7,
+                        //"VAT_INCLUDED" => "N",
+
+                    )
+                ), "return");
+            }
+
+
 
             return array(
                 'PRICE' => array(
