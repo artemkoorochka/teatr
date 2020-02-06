@@ -19,6 +19,13 @@ $eventManager->AddEventHandler("iblock", "OnAfterIBlockElementAdd", array("lansy
 $eventManager->AddEventHandler("iblock", "OnAfterIBlockElementUpdate", array("lansyPriceGenerator", "OnAfterIBlockElementUpdateHandler"));
 
 /**
+ * catalog events
+ */
+if(CSite::InDir(SITE_DIR . "basket/") || CSite::InDir(SITE_DIR . "order/")){
+    $eventManager->AddEventHandler("catalog", "OnGetOptimalPrice", array("lansyPriceGenerator", "OnGetOptimalPriceHandler"));
+}
+
+/**
  * callbacks
  */
 include "include/lansy/lansy.price.generator.php";
@@ -64,12 +71,21 @@ function OnSaleComponentOrderOneStepOrderPropsHandler(&$arResult, &$arUserResult
             ));
             if($adress = $adress->fetch())
             {
-                //$arUserResult["USER_VALS"]["ORDER_PROP"][3] = $adress["LOCATION"];
+                // set location property
+                foreach ($collect as $item) {
+                    $arUserResult["ORDER_PROP"][$item] = $adress["LOCATION"];
+                }
+                // set props from ORDER_PROPS field
+                $adress["ORDER_PROPS"] = unserialize($adress["ORDER_PROPS"]);
                 foreach ($arResult["ORDER_PROP"]["USER_PROPS_Y"] as $property){
-                    $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["LOCATION"];
+                    if(!empty($adress["ORDER_PROPS"][$property["CODE"]])){
+                        $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["ORDER_PROPS"][$property["CODE"]];
+                    }
                 }
                 foreach ($arResult["ORDER_PROP"]["USER_PROPS_N"] as $key=>$property){
-                    $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["LOCATION"];
+                    if(!empty($adress["ORDER_PROPS"][$property["CODE"]])){
+                        $arUserResult["ORDER_PROP"][$property["ID"]] = $adress["ORDER_PROPS"][$property["CODE"]];
+                    }
                 }
             }
         }
@@ -112,6 +128,35 @@ function OnBeforeOrderAddHandler(&$arFields){
     if($countProps > $countPropsFill){
         $arFields["USER_DESCRIPTION"] = "Покупатель запросил обратный звонок. Номер " . $arFields["ORDER_PROP"][22];
     }
+
+    ///
+    /// BASKET_ITEMS
+    /// recalculate
+    ///
+    if($_SESSION["SALE_USER_CURRENCY"] != "RUB"){
+        $_SESSION["SALE_USER_CURRENCY"] = "RUB";
+    }
+    $price = intval($_SESSION["USER_CATALOG_GROUP"]);
+    if($price > 0){
+        $arFields["PRICE"] = 0;
+        $arFields["CURRENCY"] = "RUB";
+        $neo = new CSaleBasket();
+        foreach ($arFields["BASKET_ITEMS"] as $key=>$arItem){
+            $arOptPrices = CCatalogProduct::GetByIDEx($arItem["PRODUCT_ID"]);
+            $arItem["PRICE"] = $arOptPrices['PRICES'][$price]['PRICE'];
+            $arFields["BASKET_ITEMS"][$key]["PRICE"] = $arItem["PRICE"];
+
+            $neo->Update($arItem["ID"], array(
+                "PRICE" => $arItem["PRICE"],
+                "CURRENCY" => "RUB"
+            ));
+
+            $arFields["PRICE"] += $arItem["PRICE"] * $arItem["QUANTITY"];
+        }
+
+    }
+    ///
+    ///
 
 }
 
