@@ -23,6 +23,9 @@ $arParams = array(
 );
 $arResult = array(
     "ITEMS" => array(),
+    "PRODUCTS" => array(),
+    "PARAMS" => array(),
+    //
     "BASKETS" => array(),
 );
 
@@ -31,34 +34,47 @@ $basketItems = Basket::getList(array(
     "select" => array(
         "ID",
         "NAME",
-        "PRODUCT_ID"
+        "FUSER_ID",
+        "PRODUCT_ID",
+        "PRICE",
+        "BASE_PRICE",
+        "PRODUCT_PRICE_ID",
+        "CURRENCY",
+        "QUANTITY",
     )
 ));
 
 while ($basketItem = $basketItems->fetch())
 {
     $arResult["ITEMS"][] = $basketItem;
+    $arResult["PRODUCTS"][] = $basketItem["PRODUCT_ID"];
+    $arResult["PARAMS"][$basketItem["PRODUCT_ID"]] = $basketItem;
 }
+
+$arResult["PRODUCTS"] = serialize($arResult["PRODUCTS"]);
+$arResult["PARAMS"] = serialize($arResult["PARAMS"]);
+$arResult["PRODUCTS"] = array(
+    "LID" => SITE_ID,
+    "FUSER_ID" => \CSaleBasket::GetBasketUserID(),
+    "PRODUCTS" => $arResult["PRODUCTS"],
+    "PARAMS" => $arResult["PARAMS"]
+);
+
+
+MultipleBasketTable::add($arResult["PRODUCTS"]);
+
+unset($arResult["PARAMS"]);
+unset($arResult["PRODUCTS"]);
 
 /**
  * Get Baskets
  */
 
-$baskets = MultipleBasketTable::getList();
+$arResult["BASKETS"] = MultipleBasketTable::getList();
+$arResult["BASKETS"] = $arResult["BASKETS"]->getSelectedRowsCount();
 
-foreach ($baskets as $basket=>$er)
-{
-    $arResult["BASKETS"][] = $basket;
-}
-
-$arResult["BASKETS"] = implode('", <br>"', $arResult["BASKETS"]);
-$arResult["BASKETS"] = '"' . $arResult["BASKETS"];
-$arResult["BASKETS"] .= '"';
 
 /**
  * Output
  */
 d($arResult);
-
-
-echo $arResult["BASKETS"];
