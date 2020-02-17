@@ -13,20 +13,6 @@
 $this->setFrameMode(true);
 ?>
 
-
-<?foreach ($arResult["ALPHAVITE"] as $alphavite):?>
-    <?foreach ($alphavite as $letter):?>
-        <?if(is_set($letter["ITEMS"])):?>
-            <a class="btn mt-1" href="#brand_<?=$letter["LETTER"]?>"><?=$letter["LETTER"]?></a>
-        <?else:?>
-            <a class="btn mt-1 disabled"><?=$letter["LETTER"]?></a>
-        <?endif;?>
-    <?endforeach;?>
-    <br>
-<?endforeach;?>
-<br>
-
-
 <?foreach ($arResult["ALPHAVITE"] as $alphavite):?>
     <?foreach ($alphavite as $letter):?>
         <?if(!empty($letter["ITEMS"])):?>
@@ -42,9 +28,4 @@ $this->setFrameMode(true);
 
         <?endif;?>
     <?endforeach;?>
-
 <?endforeach;?>
-
-
-
-
