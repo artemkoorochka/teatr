@@ -11,8 +11,6 @@
  */
 function lancyImport(arParams) {
     this.arParams = arParams;
-    this.bWorkFinished = false;
-    this.bSubmit = null;
 }
 
 /**
@@ -22,8 +20,6 @@ function lancyImport(arParams) {
  */
 lancyImport.prototype.showStatus = function() {
     console.info(this.arParams);
-    console.info(this.bWorkFinished);
-    console.info(this.bSubmit);
 };
 
 lancyImport.prototype.setStart = function (val) {
