@@ -31,38 +31,25 @@ foreach ($objPHPExcel->getWorksheetIterator() as $worksheet) {
         case "Загрузка":
 
             foreach ($worksheet->getDrawingCollection() as $drawing) {
-                d($drawing->getName());
-                d($drawing->getPath());
-                d($drawing->getImageIndex());
-                d($drawing->getDescription());
-                d($drawing->getCoordinates());
-                d($drawing->getHashCode());
 
-                /////////
-                if ($drawing instanceof PHPExcel_Worksheet_MemoryDrawing) {
-                    ob_start();
-                    call_user_func(
-                        $drawing->getRenderingFunction(),
-                        $drawing->getImageResource()
-                    );
 
-                    $imageContents = ob_get_contents();
-                    ob_end_clean();
-                    $extension = 'png';
-                } else {
-                    $zipReader = fopen($drawing->getPath(),'r');
-                    $imageContents = '';
+                ////////////
+                //for XLSX format
+                $string = $drawing->getCoordinates();
+                $coordinate = PHPExcel_Cell::coordinateFromString($string);
+                if ($drawing instanceof PHPExcel_Worksheet_Drawing) {
+                    $filename = $drawing->getPath();
+                    $drawing->getDescription();
 
-                    while (!feof($zipReader)) {
-                        $imageContents .= fread($zipReader,1024);
-                    }
-                    fclose($zipReader);
-                    $extension = $drawing->getExtension();
+                    d($filename);
+
+                    d(filetype($drawing->getDescription()));
+
+                    // copy($filename, $drawing->getDescription());
+
                 }
-
-                d($imageContents);
-                d($extension);
                 /////////
+
             }
 
 
