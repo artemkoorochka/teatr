@@ -7,14 +7,41 @@ use Studio7spb\Marketplace\ImportSettingsTable,
 class lansyPriceGenerator
 {
 
+    function isCompanyProduction($arFields){
+        $result = false;
+        // IBLOCK_ID
+        // ID
+
+        // CModule::IncludeModule('iblock');
+        $company = CIBlockElement::GetList(
+            array(),
+            array(
+                "IBLOCK_ID" => $arFields["IBLOCK_ID"],
+                "ID" => $arFields["ID"],
+                "!PROPERTY_H_COMPANY" => false
+            ),
+            false,
+            false,
+            array(
+                "ID"
+            )
+        );
+        if($company->SelectedRowsCount() > 0)
+        {
+            $result = true;
+        }
+
+        return $result;
+    }
+
     /**
      * After iblock element add or Update function
      * @param $arFields
      */
-    function OnAfterIBlockElementUpdateHandler(&$arFields)
+    function OnAfterIBlockElementUpdateHandler($arFields)
     {
         // generate prices
-        if($arFields["IBLOCK_ID"] == 2){
+        if($arFields["IBLOCK_ID"] == 2 && !self::isCompanyProduction($arFields)){
             $price = self::calculate($arFields["ID"], $arFields["IBLOCK_ID"]);
             self::setFOB($arFields["ID"], $price);
             self::setNormalPrice($arFields["ID"], $price);
@@ -58,14 +85,13 @@ class lansyPriceGenerator
         {
             CPrice::Add($arFields);
         }
-
         #Конвертировать эту же цену и записать сюда $PRICE_TYPE_ID = 1; с доллара в рубль
         $curs = Studio7spb\Marketplace\ImportSettingsTable::getList(array(
             "filter" => array("CODE" => "AZ1")
         ));
         if($curs = $curs->fetch()){
             if($curs["VALUE"] > 0){
-                $PRICE_TYPE_ID = 1;
+                $PRICE_TYPE_ID = 7;
                 $arFields = Array(
                     "PRODUCT_ID" => $PRODUCT_ID,
                     "CATALOG_GROUP_ID" => $PRICE_TYPE_ID,
@@ -367,72 +393,180 @@ class lansyPriceGenerator
 
     }
 
-
-    function OnGetOptimalPriceHandler($productID, $quantity = 1, $arUserGroups = array(), $renewal = "N", $arPrices = array(), $siteID = false, $arDiscountCoupons = false){
+    /**
+     * https://github.com/sidigi/bitrix-info/wiki/Добавление-товара-в-корзину-с-произвольной-ценой-(D7)
+     * @param $productID
+     * @param int $quantity
+     * @param array $arUserGroups
+     * @param string $renewal
+     * @param array $arPrices
+     * @param bool $siteID
+     * @param bool $arDiscountCoupons
+     * @return array
+     */
+    function OnGetOptimalPriceHandler($productID, $quantity = 1, $arUserGroups = array(), $renewal = "N", $arPrices = array(), $siteID = false, $arDiscountCoupons = false)
+    {
         // Идентификатор цены
         $price = intval($_SESSION["USER_CATALOG_GROUP"]);
+        $arOptPrices = CCatalogProduct::GetByIDEx($productID);
+        return array(
+            'PRICE' => array(
+                "ID" => $productID,
+                'ELEMENT_IBLOCK_ID' => $arOptPrices["IBLOCK_ID"],
+                'CATALOG_GROUP_ID' => $price,
+                'PRICE' => $arOptPrices['PRICES'][$price]['PRICE'],
+                'CURRENCY' => $arOptPrices['PRICES'][$price]['CURRENCY']
+                // Умножить на коефициент НДС
+                // Включать ли НДС
+                //"VAT_RATE" => 7,
+                //"VAT_INCLUDED" => "N",
 
-        if($price > 0){
+            )
+        );
+    }
 
-            $arOptPrices = CCatalogProduct::GetByIDEx($productID);
 
-            //if(CSite::InDir(SITE_DIR . "order/")){
-            if(true){
-                // подменяем на конвертированную цену
-                if($price == 6){
-                    //$price = 1;
-                    $_SESSION["SALE_USER_CURRENCY"] = "RUB";
+    /**
+     * @param $arFields
+     */
+    function OnAfterUserUpdateHandler($arFields){
 
-                }
+        AddMessage2Log($arFields, "OnAfterUserUpdateHandler");
 
-                AddMessage2Log($price, "подменяем на конвертированную цену");
-                AddMessage2Log($arOptPrices['PRICES'], "arOptPrices");
-                AddMessage2Log(array(
-                    'PRICE' => array(
-                        "ID" => $productID,
-                        'ELEMENT_IBLOCK_ID' => $arOptPrices["IBLOCK_ID"],
-                        'CATALOG_GROUP_ID' => $price,
-                        'PRICE' => $arOptPrices['PRICES'][$price]['PRICE'],
-                        'CURRENCY' => $arOptPrices['PRICES'][$price]['CURRENCY']
-                        // Умножить на коефициент НДС
-                        // Включать ли НДС
-                        //"VAT_RATE" => 7,
-                        //"VAT_INCLUDED" => "N",
+        if($arFields["UF_DISCONT_VALUE"] > 0){
 
-                    )
-                ), "return");
+            CModule::IncludeModule('sale');
+
+            $discount = CSaleDiscount::GetList(
+                array("ID" => "DESC"),
+                array("XML_ID" => $arFields["ID"]),
+                false,
+                false,
+                array("ID", "XML_ID")
+            );
+            if($discount = $discount->Fetch()){
+                $discount = $discount["ID"];
             }
 
+            switch ($arFields["UF_DISCONT_TYPE"]){
+                case 1:
+                    // Скидка
+                    $discountFields = array(
+                        "LID" => "s1",
+                        "ACTIVE" => "Y",
+                        "NAME" => "Personal discont for " . $arFields["LOGIN"],
+                        "XML_ID" => $arFields["ID"],
+                        'USER_GROUPS' => array(2),
+                        'CONDITIONS' => Array(
+                            'CLASS_ID' => 'CondGroup',
+                            'DATA' => Array(
+                                'All' => 'OR',
+                                'True' => 'True'
+                            ),
+                            'CHILDREN' => Array(
+                                Array(
+                                    'CLASS_ID' => 'CondMainUserId',
+                                    'DATA' =>
+                                        array (
+                                            'logic' => 'Equal',
+                                            'value' =>
+                                                array (
+                                                    0 => $arFields["ID"]
+                                                )
+                                        )
+                                ),
+                            )
+                        ),
 
+                        'ACTIONS' => array(
+                            'CLASS_ID' => 'CondGroup',
+                            'DATA' => Array(
+                                'All' => 'AND',
+                            ),
+                            'CHILDREN' => Array(
+                                Array(
+                                    'CLASS_ID' => 'ActSaleBsktGrp',
+                                    'DATA' => array (
+                                        'Type' => 'Discount',
+                                        'Value' => $arFields["UF_DISCONT_VALUE"],
+                                        'Unit' => 'Perc',
+                                        'Max' => 0,
+                                        'All' => 'AND',
+                                        'True' => 'True',
+                                    ),
+                                    'CHILDREN' => Array()
+                                ),
+                            )
+                        )
+                    );
 
-            return array(
-                'PRICE' => array(
-                    "ID" => $productID,
-                    'ELEMENT_IBLOCK_ID' => $arOptPrices["IBLOCK_ID"],
-                    'CATALOG_GROUP_ID' => $price,
-                    'PRICE' => $arOptPrices['PRICES'][$price]['PRICE'],
-                    'CURRENCY' => $arOptPrices['PRICES'][$price]['CURRENCY']
-                    // Умножить на коефициент НДС
-                    // Включать ли НДС
-                    //"VAT_RATE" => 7,
-                    //"VAT_INCLUDED" => "N",
+                    if($discount > 0){
+                        CSaleDiscount::Update($discount, $discountFields);
+                    }else{
+                        CSaleDiscount::Add($discountFields);
+                    }
 
-                )
-            );
+                    break;
+                case 2:
+                    // Наценка
+                    $discountFields = array(
+                        "LID" => "s1",
+                        "ACTIVE" => "Y",
+                        "NAME" => "Personal discont for " . $arFields["LOGIN"],
+                        "XML_ID" => $arFields["ID"],
+                        'USER_GROUPS' => array(2),
+                        'CONDITIONS' => Array(
+                            'CLASS_ID' => 'CondGroup',
+                            'DATA' => Array(
+                                'All' => 'OR',
+                                'True' => 'True'
+                            ),
+                            'CHILDREN' => Array(
+                                Array(
+                                    'CLASS_ID' => 'CondMainUserId',
+                                    'DATA' =>
+                                        array (
+                                            'logic' => 'Equal',
+                                            'value' =>
+                                                array (
+                                                    0 => $arFields["ID"]
+                                                )
+                                        )
+                                ),
+                            )
+                        ),
 
+                        'ACTIONS' => array(
+                            'CLASS_ID' => 'CondGroup',
+                            'DATA' => Array(
+                                'All' => 'AND',
+                            ),
+                            'CHILDREN' => Array(
+                                Array(
+                                    'CLASS_ID' => 'ActSaleBsktGrp',
+                                    'DATA' => array (
+                                        'Type' => 'Extra',
+                                        'Value' => $arFields["UF_DISCONT_VALUE"],
+                                        'Unit' => 'Perc',
+                                        'Max' => 0,
+                                        'All' => 'AND',
+                                        'True' => 'True',
+                                    ),
+                                    'CHILDREN' => Array()
+                                ),
+                            )
+                        )
+                    );
+
+                    if($discount > 0){
+                        CSaleDiscount::Update($discount, $discountFields);
+                    }else{
+                        CSaleDiscount::Add($discountFields);
+                    }
+
+                    break;
+            }
         }
+
     }
-
-    function OnGetOptimalPriceResultHandler(&$arResult){
-        // OnGetOptimalPriceResult
-        // https://dev.1c-bitrix.ru/community/blogs/vws/work-in-pairs.php
-
-        $arResult["PRICE"]["PRICE"] == 666;
-        $arResult["PRICE"]["CURRENCY"] == "RUB";
-        $arResult["RESULT_PRICE"]["PRICE_TYPE_ID"] == 3;
-        $arResult["RESULT_PRICE"]["BASE_PRICE"] == 666;
-        $arResult["RESULT_PRICE"]["DISCOUNT_PRICE"] == 666;
-        $arResult["RESULT_PRICE"]["CURRENCY"] == "RUB";
-    }
-
 }
