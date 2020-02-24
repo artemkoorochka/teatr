@@ -1,6 +1,8 @@
 <?
 if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
-use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Localization\Loc,
+    Bitrix\Main\Loader,
+    Bitrix\Sale\Basket;
 
 if ($arParams['SHOW_ORDER_PAGE'] !== 'Y')
 {
@@ -14,47 +16,74 @@ if (strlen($arParams["MAIN_CHAIN_NAME"]) > 0)
 
 include("left_menu.php");
 $APPLICATION->AddChainItem(Loc::getMessage("SPS_CHAIN_ORDERS"), $arResult['PATH_TO_ORDERS']);
+
+// <editor-fold defaultstate="collapsed" desc=" # Company">
+$company = CIBlockElement::GetList(
+    array(),
+    array(
+        "IBLOCK_ID" => 6,
+        "PROPERTY_COMP_USER" => $USER->GetID()
+    ),
+    false,
+    false,
+    array(
+        "ID",
+        "PROPERTY_COMP_COMMISSION"
+    )
+);
+
+if($company = $company->Fetch()){
+    $company["PRODUCTS"] = array();
+    $company["SUM"] = 0;
+    $products = CIBlockElement::GetList(
+        array(),
+        array(
+            "IBLOCK_ID" => 2,
+            "PROPERTY_H_COMPANY" => $company["ID"]
+        ),
+        false,
+        false,
+        array(
+            "ID"
+        )
+    );
+    while ($product = $products->Fetch())
+    {
+        $company["PRODUCTS"][] = $product["ID"];
+    }
+
+    $arResult["COMPANY"] = $company;
+}
+
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc=" # Basket Items calculate order sum">
+if($arResult["COMPANY"]["ID"] > 0 && !empty($arResult["COMPANY"]["PRODUCTS"])){
+    Loader::includeModule("sale");
+    $basketItems = Basket::getList(array(
+        "filter" => array(
+            "!ORDER_ID" => false,
+            "PRODUCT_ID" => $arResult["COMPANY"]["PRODUCTS"]
+        ),
+        "select" => array("PRICE")
+    ));
+    while ($basketItem = $basketItems->fetch()){
+        //$arResult["ITEMS"][] = $basketItem;
+        $arResult["COMPANY"]["SUM"] += $basketItem["PRICE"];
+    }
+}
+
+$arResult["COMPANY"]["SUM"] = CurrencyFormat($arResult["COMPANY"]["SUM"], "RUB");
+// </editor-fold>
 ?>
 <div class="s7sbp--marketplace--saler--lk--right--inner">
 
 	<div class="s7sbp--marketplace--saler--lk--title ff--roboto">комиссионное вознаграждении за текущий месяц</div>
 	<p>Информация о начисленном комиссионном вознаграждении за текущий месяц</p>
-	<p><strong>Сумма продаж: </strong></p>
-	<p><strong>Сумма комиссионного вознаграждения: </strong></p>
-	<br>
-	<br>
+	<p><strong>Ставка комиссионного вознаграждения: </strong> <?=$arResult["COMPANY"]["PROPERTY_COMP_COMMISSION_VALUE"]?> %</p>
+	<p><strong>Сумма продаж: </strong> <?=$arResult["COMPANY"]["SUM"]?></p>
+	<p><strong>Сумма комиссионного вознаграждения: </strong> <?=$arResult["COMPANY"]["PROPERTY_COMP_COMMISSION_VALUE"]?> %</p>
 
-	<div class="s7sbp--marketplace--saler--lk--title ff--roboto">Заказы магазина</div>
-
-	<div class="s7sbp--marketplace--saler--lk--form ff--roboto">
-		<?$APPLICATION->IncludeComponent(
-			"bitrix:sale.personal.order.list",
-			"",
-			array(
-				"PATH_TO_DETAIL" => $arResult["PATH_TO_ORDER_DETAIL"],
-				"PATH_TO_CANCEL" => $arResult["PATH_TO_ORDER_CANCEL"],
-				"PATH_TO_CATALOG" => $arParams["PATH_TO_CATALOG"],
-				"PATH_TO_COPY" => $arResult["PATH_TO_ORDER_COPY"],
-				"PATH_TO_BASKET" => $arParams["PATH_TO_BASKET"],
-				"PATH_TO_PAYMENT" => $arParams["PATH_TO_PAYMENT"],
-				"SAVE_IN_SESSION" => $arParams["SAVE_IN_SESSION"],
-				"ORDERS_PER_PAGE" => $arParams["ORDERS_PER_PAGE"],
-				"SET_TITLE" =>$arParams["SET_TITLE"],
-				"ID" => $arResult["VARIABLES"]["ID"],
-				"NAV_TEMPLATE" => $arParams["NAV_TEMPLATE"],
-				"ACTIVE_DATE_FORMAT" => $arParams["ACTIVE_DATE_FORMAT"],
-				"HISTORIC_STATUSES" => $arParams["ORDER_HISTORIC_STATUSES"],
-				"ALLOW_INNER" => $arParams["ALLOW_INNER"],
-				"ONLY_INNER_FULL" => $arParams["ONLY_INNER_FULL"],
-				"CACHE_TYPE" => $arParams["CACHE_TYPE"],
-				"CACHE_TIME" => $arParams["CACHE_TIME"],
-				"CACHE_GROUPS" => $arParams["CACHE_GROUPS"],
-				"DISALLOW_CANCEL" => $arParams["ORDER_DISALLOW_CANCEL"],
-				"DEFAULT_SORT" => $arParams["ORDER_DEFAULT_SORT"],
-				"RESTRICT_CHANGE_PAYSYSTEM" => $arParams["ORDER_RESTRICT_CHANGE_PAYSYSTEM"],
-				"REFRESH_PRICES" => $arParams["ORDER_REFRESH_PRICES"],
-			),
-			$component
-		);?>
-	</div>
 </div>
+
+
