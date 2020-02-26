@@ -5,7 +5,8 @@
  * @var CMain $APPLICATION
  * Отладка SQL-запросов
  * https://mrcappuccino.ru/blog/post/bitrix-d7-debug
- * TODO Нужно видить SQL
+ * Using SQL Tracker
+ * Cosole and comands line
  */
 
 use Bitrix\Main\Loader,
@@ -58,7 +59,7 @@ $elements = ElementTable::getList(array(
 $connection->stopTracker();
 
 foreach ($tracker->getQueries() as $query) {
-    d($query->getSql()); // Текст запроса
+    Diag\Debug::dump($query->getSql(), "SQL"); // Текст запроса
     //d($query->getTrace()); // Стек вызовов функций, которые привели к выполнению запроса
     d($query->getTime()); // Время выполнения запроса в секундах
 }
