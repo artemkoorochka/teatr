@@ -9,9 +9,29 @@ use Bitrix\Main\Loader,
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->RestartBuffer();
 
-$arParams = array(
-    "MODULE" => "iblock"
-);
+$arParams = [
+    "MODULE" => "iblock",
+    "ELEMENTS" => [
+        "FILTER" => [
+            "IBLOCK_ID" => 2
+        ],
+        "SELECT" => [
+            "ID",
+            "NAME"
+        ]
+    ]
+];
+
+$arResult = array();
 
 Loader::includeModule($arParams["MODULE"]);
 
+$elements = ElementTable::getList(array(
+    "filter" => $arParams["ELEMENTS"]["FILTER"],
+    "select" => $arParams["ELEMENTS"]["SELECT"]
+));
+while ($element = $elements->fetch()){
+    $arResult[] = $element;
+}
+
+d($arResult);
