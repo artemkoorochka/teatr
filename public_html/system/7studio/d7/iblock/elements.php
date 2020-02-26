@@ -5,12 +5,15 @@
  * @var CMain $APPLICATION
  * Отладка SQL-запросов
  * https://mrcappuccino.ru/blog/post/bitrix-d7-debug
+ * https://dev.1c-bitrix.ru/support/forum/forum6/topic88441/
+ * https://gist.github.com/chebanenko/666c612c34b321fdcc13
  * Using SQL Tracker
  * Cosole and comands line
  */
 
 use Bitrix\Main\Loader,
     Bitrix\Iblock\ElementTable,
+    Bitrix\Iblock\PropertyIndex,
     Bitrix\Main\Diag;
 
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
@@ -20,6 +23,7 @@ $iblockId = \Studio7spb\Marketplace\CMarketplaceOptions::getInstance()->getOptio
 $arParams = [
     "MODULE" => "iblock",
     "ELEMENTS" => [
+        "LIMIT" => 10,
         "FILTER" => [
             "IBLOCK_ID" => $iblockId
         ],
@@ -28,7 +32,11 @@ $arParams = [
             "NAME",
             "IBLOCK_SECTION_ID",
             "SECTION.ID",
-            "SECTION.NAME"
+            "SECTION.NAME",
+            "PROPERTY.ID",
+            "PROPERTY.NAME",
+            "LINK.ID",
+            //"LINK.VALUE"
         ]
     ]
 ];
@@ -46,6 +54,7 @@ $elements = ElementTable::getList(array(
     'order' => ["ID" => "asc"],
     "filter" => $arParams["ELEMENTS"]["FILTER"],
     "select" => $arParams["ELEMENTS"]["SELECT"],
+    "limit" => $arParams["ELEMENTS"]["LIMIT"],
     "runtime" => [
         "SECTION" => [
             "data_type" => "\Bitrix\Iblock\SectionTable",
@@ -53,13 +62,29 @@ $elements = ElementTable::getList(array(
                 '=this.IBLOCK_SECTION_ID' => 'ref.ID'
             ],
             'join_type' => 'inner'
-        ]
+        ],
+        'PROPERTY' => [
+            'data_type' => 'Bitrix\Iblock\PropertyTable',
+            'reference' => ['=this.IBLOCK_ID' => 'ref.IBLOCK_ID'],
+            'join_type' => "LEFT",
+        ],
+        'LINK' => [
+            'data_type' => 'float',
+            'expression' => [
+                '(SELECT ID, VALUE
+                FROM b_iblock_element_property
+                WHERE b_iblock_element_property.IBLOCK_PROPERTY_ID=%s
+                    AND b_iblock_element_property.IBLOCK_ELEMENT_ID=%s)',
+                'PROPERTY.ID',
+                'ID',
+            ],
+        ],
     ]
 ));
 $connection->stopTracker();
 
 foreach ($tracker->getQueries() as $query) {
-    Diag\Debug::dump($query->getSql(), "SQL"); // Текст запроса
+    d($query->getSql()); // Текст запроса
     //d($query->getTrace()); // Стек вызовов функций, которые привели к выполнению запроса
     d($query->getTime()); // Время выполнения запроса в секундах
 }
@@ -69,3 +94,4 @@ while ($element = $elements->fetch()){
 }
 
 d($arResult);
+
