@@ -2,7 +2,8 @@
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 	die();
 
-use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Localization\Loc,
+    Studio7spb\Marketplace\RequisitsTable;
 
 Loc::loadMessages(__FILE__);
 ?>
@@ -75,7 +76,7 @@ $width = $pageWidth - $margin['left'] - $margin['right'];
 
 <body style="margin: 0pt; padding: 0pt; background: <?=$background; ?>"<? if ($_REQUEST['PRINT'] == 'Y') { ?> onload="setTimeout(window.print, 0);"<? } ?>>
 
-<div style="margin: 0pt; padding: <?=join('pt ', $margin); ?>pt; width: <?=$width; ?>pt; background: <?=$background; ?>">
+<div style="margin: 0pt; padding: 5pt 10pt; background: <?=$background; ?>">
 
     <table style="margin-bottom: 24px;">
         <tr style="font-size: 16px; font-weight: bold;">
@@ -145,21 +146,27 @@ $width = $pageWidth - $margin['left'] - $margin['right'];
             <td width="30%">Плательщик:</td>
             <td>
                 <div style="text-decoration: underline;">
-                    ООО "Солнышко"
+                    <?
+                    $requisits = RequisitsTable::getList(array(
+                        "filter" => array(
+                            "USER_ID" => $USER->GetID()
+                        )
+                    ));
+                    if($requisits = $requisits->fetch()):
+                    ?>
+                        <?=$requisits["OWNERSHIP"]?> "<?=$requisits["NAME"]?>"
+                    <?endif;?>
                 </div>
             </td>
         </tr>
     </table>
 
-    <p>При оформлении платежного поручения ссылка на номер счета и дату обязательны!</p>
-    <p style="font-weight: bold">
+    <div>При оформлении платежного поручения ссылка на номер счета и дату обязательны!</div>
+    <div style="font-weight: bold">
         При оплате счета третьим лицом обязательна ссылка на покупателя товара. Просьба в платежных документах обязательно выделять НДС (ставку и сумму)
-    </p>
+    </div>
 
 
-
-
-<br>
 <?
 
 if ($params['BILL_PAYER_SHOW'] == 'Y'):
@@ -186,8 +193,7 @@ if ($params['BILL_PAYER_SHOW'] == 'Y'):
 endif;
 ?>
 
-<br>
-<br>
+
 
 <?
 $arCurFormat = CCurrencyLang::GetCurrencyFormat($params['CURRENCY']);
@@ -201,7 +207,17 @@ $sum = 0.00;
 $vat = 0;
 $cntBasketItem = 0;
 
-$columnList = array('NUMBER', 'NAME', 'QUANTITY', 'MEASURE', 'PRICE', 'VAT_RATE', 'SUM');
+// Code injection
+$params['BILL_COLUMN_CODE_SHOW'] = "Y";
+$params['BILL_COLUMN_CODE_TITLE'] = Loc::getMessage("SALE_HPS_BILL_BASKET_ITEM_CODE");
+$params['BILL_COLUMN_CODE_SORT'] = "190";
+// Article injection
+$params['BILL_COLUMN_ARTICLE_SHOW'] = "Y";
+$params['BILL_COLUMN_ARTICLE_TITLE'] = Loc::getMessage("SALE_HPS_BILL_BASKET_ITEM_ARTICLE");
+$params['BILL_COLUMN_ARTICLE_SORT'] = "210";
+
+
+$columnList = array('NUMBER', "CODE", 'NAME', "ARTICLE", 'QUANTITY', 'PRICE', 'VAT_RATE', 'SUM'); // 'MEASURE'
 $arCols = array();
 $vatRateColumn = 0;
 foreach ($columnList as $column)
@@ -209,8 +225,20 @@ foreach ($columnList as $column)
 	if ($params['BILL_COLUMN_'.$column.'_SHOW'] == 'Y')
 	{
 		$caption = $params['BILL_COLUMN_'.$column.'_TITLE'];
-		if (in_array($column, array('PRICE', 'SUM')))
-			$caption .= ', '.$currency;
+		if (in_array($column, array('PRICE', 'SUM'))){
+		    // SALE_HPS_BILL_TOTAL_VAT_RATE_NO
+
+            switch ($column){
+                case "PRICE":
+                    $caption .=  " " . Loc::getMessage("SALE_HPS_BILL_TOTAL_VAT_RATE_NO");
+                    break;
+                case "SUM":
+                    $caption .=  " " . Loc::getMessage("SALE_HPS_BILL_BASKET_ITEM_VAT_RATE");
+                    break;
+            }
+
+            $caption .= ', '.$currency . " " . Loc::getMessage("SALE_HPS_BILL_CHENTO");
+        }
 
 		$arCols[$column] = array(
 			'NAME' => $caption,
@@ -259,6 +287,21 @@ if ($params['BASKET_ITEMS'])
 			{
 				case 'NUMBER':
 					$data = $n;
+					break;
+				case 'CODE':
+				case 'ARTICLE':
+
+					$element = CIBlockElement::GetList(
+                        array(),
+                        array("ID" => $basketItem["PRODUCT_ID"]),
+                        false,
+                        false,
+                        array("ID", "IBLOCK_ID", "PROPERTY_ITEM_NO")
+                    );
+					if($element = $element->Fetch()){
+                        $data = $element["PROPERTY_ITEM_NO_VALUE"];
+                    }
+
 					break;
 				case 'NAME':
 					$data = htmlspecialcharsbx($productName);
@@ -384,6 +427,7 @@ if ($params['BILL_TOTAL_SHOW'] == 'Y')
 		}
 	}
 
+	/*
 	if (!$params['TAXES'])
 	{
 		$cells[++$n] = array();
@@ -393,6 +437,7 @@ if ($params['BILL_TOTAL_SHOW'] == 'Y')
 		$cells[$n][$arColumnKeys[$columnCount-2]] = htmlspecialcharsbx(Loc::getMessage('SALE_HPS_BILL_TOTAL_VAT_RATE'));
 		$cells[$n][$arColumnKeys[$columnCount-1]] = htmlspecialcharsbx(Loc::getMessage('SALE_HPS_BILL_TOTAL_VAT_RATE_NO'));
 	}
+	*/
 
 	if ($params['SUM_PAID'] > 0)
 	{
@@ -419,8 +464,22 @@ if ($params['BILL_TOTAL_SHOW'] == 'Y')
 
 	$cells[$n][$arColumnKeys[$columnCount-2]] = Loc::getMessage('SALE_HPS_BILL_TOTAL_SUM');
 	$cells[$n][$arColumnKeys[$columnCount-1]] = SaleFormatCurrency($params['SUM'], $params['CURRENCY'], true);
+
+    $n++;
+    $vatPercent = $params['SUM'] * 0.1;
+    $vatPercent = SaleFormatCurrency($vatPercent, $params['CURRENCY'], true);
+    $cells[$n][$arColumnKeys[$columnCount-2]] = Loc::getMessage('SALE_HPS_BILL_TOTAL_VAT_10');
+    $cells[$n][$arColumnKeys[$columnCount-1]] = $vatPercent;
+
+    $n++;
+    $vatPercent = $params['SUM'] * 0.2;
+    $vatPercent = SaleFormatCurrency($vatPercent, $params['CURRENCY'], true);
+    $cells[$n][$arColumnKeys[$columnCount-2]] = Loc::getMessage('SALE_HPS_BILL_TOTAL_VAT_20');
+    $cells[$n][$arColumnKeys[$columnCount-1]] = $vatPercent;
+
 }
 ?>
+
 <table class="it" width="100%">
 	<tr>
 	<?foreach ($arCols as $columnId => $col):?>
