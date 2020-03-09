@@ -1,10 +1,15 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
-
+$this->addExternalCss("/bitrix/css/main/bootstrap_v4/bootstrap.css");
 use Bitrix\Main\Localization\Loc;
 
 CJSCore::Init(array('ajax'));
 ?>
 <div class="s7sbp--marketplace--saler--lk--right--inner">
+
+    <?if($_REQUEST["message"] == "success"):?>
+        <div class="alert alert-success text-center">Товар успешно изменен</div>
+    <?endif;?>
+
 	<div class="s7sbp--marketplace--saler--lk--product-add--title">
 		<?if((int)$arParams["ELEMENT_ID"]> 0):?>Изменение товара<?else:?>Добавление товара<?endif;?>
 		<span class="s7sbp--marketplace--saler--lk--product-add--back"><a href="<?=$arParams["SEF_FOLDER"]?>products/"><?=Loc::getMessage("SPPA_BACK_TO_PRODUCT_PAGE")?></a></span>
@@ -17,6 +22,18 @@ CJSCore::Init(array('ajax'));
 		endif;?>
 
 		<?=bitrix_sessid_post()?>
+
+        <div class="s7sbp--marketplace--saler--lk--product-add--field">
+            <div class="s7sbp--marketplace--saler--lk--product-add--field--label">
+                <label for="NAME">Опубликовано</label>
+            </div>
+            <div class="s7sbp--marketplace--saler--lk--product-add--field--value">
+                <input type="checkbox"
+                       value="Y"
+                        <?=$arResult["ELEMENT"]["ACTIVE"]=="Y" ? "checked" : ""?>
+                       name="ACTIVE" />
+            </div>
+        </div>
 
 		<div class="s7sbp--marketplace--saler--lk--product-add--field">
 			<div class="s7sbp--marketplace--saler--lk--product-add--field--label">
@@ -31,6 +48,7 @@ CJSCore::Init(array('ajax'));
 				</select>
 			</div>
 		</div>
+
 		<div class="s7sbp--marketplace--saler--lk--product-add--field">
 			<div class="s7sbp--marketplace--saler--lk--product-add--field--label">
 				<label for="NAME">Название <span class="required">*</span></label>
@@ -60,15 +78,6 @@ CJSCore::Init(array('ajax'));
 			</div>
 			<div class="s7sbp--marketplace--saler--lk--product-add--field--value">
 				<input type="text" name="PRICE" id="PRICE" value="<?=$arResult["ELEMENT_PRICE_INFO"]["PRICE"]?>" required="required">
-			</div>
-		</div>
-
-		<div class="s7sbp--marketplace--saler--lk--product-add--field">
-			<div class="s7sbp--marketplace--saler--lk--product-add--field--label" style="color: red">
-				<label for="PRICE_DISCOUNT">Цена со скидкой <span class="required">*</span></label>
-			</div>
-			<div class="s7sbp--marketplace--saler--lk--product-add--field--value">
-				<input type="text" name="PRICE_DISCOUNT" id="PRICE_DISCOUNT" value="<?=$arResult["ELEMENT_PROPERTIES"][15][0]["VALUE"]?>" required="required">
 			</div>
 		</div>
 
@@ -136,7 +145,7 @@ CJSCore::Init(array('ajax'));
 
 		<?
 		$aPicturesIds = array();
-		foreach ($arResult["ELEMENT_PROPERTIES"][6] as $picItem) {
+		foreach ($arResult["ELEMENT_PROPERTIES"][285] as $picItem) {
 			$aPicturesIds[] = $picItem["VALUE"];
 		}
 		$APPLICATION->IncludeComponent("bitrix:main.file.input", "dnd",
