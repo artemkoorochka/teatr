@@ -1,6 +1,8 @@
 <?
 
 
+use Bitrix\Main\UserTable;
+use Studio7spb\Marketplace\CMarketplaceOptions;
 use Studio7spb\Marketplace\ImportSettingsTable,
     Bitrix\Highloadblock;
 
@@ -23,13 +25,24 @@ class lansyPriceGenerator
             false,
             false,
             array(
-                "ID"
+                "ID",
+                "IBLOCK_ID",
+                "PROPERTY_H_COMPANY.PROPERTY_COMP_TYPE"
             )
         );
-        if($company->SelectedRowsCount() > 0)
+
+        // Проверка продукт компании ли
+        //if($company->SelectedRowsCount() > 0)
+        //  $result = true;
+
+        // Проверка продукт компании ли типа рос вендор
+        if($company = $company->Fetch())
         {
-            $result = true;
+            if($company["PROPERTY_H_COMPANY_PROPERTY_COMP_TYPE_ENUM_ID"] == 18){
+                $result = true;
+            }
         }
+
 
         return $result;
     }
@@ -40,19 +53,112 @@ class lansyPriceGenerator
      */
     function OnAfterIBlockElementUpdateHandler($arFields)
     {
-        // generate prices
-        if($arFields["IBLOCK_ID"] == 2 && !self::isCompanyProduction($arFields)){
-            $price = self::calculate($arFields["ID"], $arFields["IBLOCK_ID"]);
-            self::setFOB($arFields["ID"], $price);
-            self::setNormalPrice($arFields["ID"], $price);
-            self::setQuicklyPrice($arFields["ID"], $price);
+        switch ($arFields["IBLOCK_ID"]){
+            case CMarketplaceOptions::getInstance()->getOption("catalog_iblock_id"):
+                // generate prices
+                if(!self::isCompanyProduction($arFields)){
+                    $price = self::calculate($arFields["ID"], $arFields["IBLOCK_ID"]);
+                    self::setFOB($arFields["ID"], $price);
+                    self::setNormalPrice($arFields["ID"], $price);
+                    self::setQuicklyPrice($arFields["ID"], $price);
+                    // set properties
+                    self::setFactory($price);
+                    // set data from tamojnja
+                    self::Tamojnja($price);
+                }
+                break;
+            case CMarketplaceOptions::getInstance()->getOption("company_iblock_id"):
+                // 321
+                // COMP_COMMISSION
+                // Комиссионное вознаграждение
+                $extra = $arFields["PROPERTY_VALUES"][321];
+                $extra = array_pop($extra);
+                $extra = $extra["VALUE"];
+                $extra = intval($extra);
+                if($extra > 0 && $extra < 100){
+                    // get user discount
+                    CModule::IncludeModule('sale');
 
-            // set properties
-            self::setFactory($price);
+                    $discount = CSaleDiscount::GetList(
+                        array("ID" => "DESC"),
+                        array("XML_ID" => "COMP_COMMISSION_" . $arFields["ID"]),
+                        false,
+                        false,
+                        array("ID", "XML_ID")
+                    );
+                    if($discount = $discount->Fetch()){
+                        $discount = $discount["ID"];
+                    }
 
-            // set data from tamojnja
-            self::Tamojnja($price);
+                    // Наценка
+
+                    $discountFields = array (
+                        "LID" => "s1",
+                        "ACTIVE" => "Y",
+                        "NAME" => "Comission for all company-production for " . $arFields["NAME"],
+                        "XML_ID" => "COMP_COMMISSION_" . $arFields["ID"],
+                        'USER_GROUPS' => array(2),
+                        'CONDITIONS' =>
+                            array (
+                                'CLASS_ID' => 'CondGroup',
+                                'DATA' =>
+                                    array (
+                                        'All' => 'AND',
+                                        'True' => 'True',
+                                    ),
+                                'CHILDREN' =>
+                                    array (
+                                    ),
+                            ),
+                        'ACTIONS' =>
+                            array (
+                                'CLASS_ID' => 'CondGroup',
+                                'DATA' =>
+                                    array (
+                                        'All' => 'AND',
+                                    ),
+                                'CHILDREN' =>
+                                    array (
+                                        0 =>
+                                            array (
+                                                'CLASS_ID' => 'ActSaleBsktGrp',
+                                                'DATA' =>
+                                                    array (
+                                                        'Type' => 'Extra',
+                                                        'Value' => $extra,
+                                                        'Unit' => 'Perc',
+                                                        'Max' => 0,
+                                                        'All' => 'AND',
+                                                        'True' => 'True',
+                                                    ),
+                                                'CHILDREN' =>
+                                                    array (
+                                                        0 =>
+                                                            array (
+                                                                'CLASS_ID' => 'CondIBProp:2:320',
+                                                                'DATA' =>
+                                                                    array (
+                                                                        'logic' => 'Equal',
+                                                                        'value' => $arFields["ID"],
+                                                                    ),
+                                                            ),
+                                                    ),
+                                            ),
+                                    ),
+                            ),
+                    );
+
+                    if($discount > 0){
+                        CSaleDiscount::Update($discount, $discountFields);
+                    }else{
+                        CSaleDiscount::Add($discountFields);
+                    }
+
+                }
+
+                break;
         }
+
     }
 
     /**
@@ -395,6 +501,7 @@ class lansyPriceGenerator
 
     /**
      * https://github.com/sidigi/bitrix-info/wiki/Добавление-товара-в-корзину-с-произвольной-ценой-(D7)
+     * https://dev.1c-bitrix.ru/support/forum/forum6/topic60003/
      * @param $productID
      * @param int $quantity
      * @param array $arUserGroups
@@ -408,6 +515,7 @@ class lansyPriceGenerator
     {
         // Идентификатор цены
         $price = intval($_SESSION["USER_CATALOG_GROUP"]);
+
         $arOptPrices = CCatalogProduct::GetByIDEx($productID);
         return array(
             'PRICE' => array(
@@ -431,10 +539,9 @@ class lansyPriceGenerator
      */
     function OnAfterUserUpdateHandler($arFields){
 
-        AddMessage2Log($arFields, "OnAfterUserUpdateHandler");
-
+        // add discount
         if($arFields["UF_DISCONT_VALUE"] > 0){
-
+            // get user discount
             CModule::IncludeModule('sale');
 
             $discount = CSaleDiscount::GetList(
@@ -447,7 +554,6 @@ class lansyPriceGenerator
             if($discount = $discount->Fetch()){
                 $discount = $discount["ID"];
             }
-
             switch ($arFields["UF_DISCONT_TYPE"]){
                 case 1:
                     // Скидка
@@ -566,6 +672,60 @@ class lansyPriceGenerator
 
                     break;
             }
+        }
+
+        // delete discount
+        if(
+            $arFields["UF_DISCONT_TYPE"] == 3 ||
+            $arFields["UF_DISCONT_TYPE"] == 0 ||
+            empty($arFields["UF_DISCONT_TYPE"])
+        ){
+            CSaleDiscount::Delete($discount);
+        }
+
+    }
+
+    /**
+     * Функции-обработчика перед отправкой сообщения.
+     * https://dev.1c-bitrix.ru/api_help/main/events/onbeforeeventsend.php
+     * @param $arFields
+     * @param $arTemplate
+     * Параметры можно передавать по ссылкам
+     */
+    function OnBeforeEventSendHandler(&$arFields, &$arTemplate, $context){
+
+        if(!empty($arFields["EMAIL"])){
+            $user = UserTable::getList(array(
+                "filter" => array(
+                    "EMAIL" => $arFields["EMAIL"]
+                ),
+                "select" => array(
+                    "ID",
+                    "UF_UNSUBSCRIBE"
+                )
+            ));
+            if($user = $user->fetch())
+            {
+                if(intval($user["UF_UNSUBSCRIBE"]) > 0){
+                    return false;
+                }
+            }
+        }
+
+        if(strpos($arTemplate["MESSAGE"],'#FOOTER#') !== false)
+        {
+            $server_name = COption::GetOptionString("main", "server_name", "");
+            $footerText = '<br>
+                        <br>
+                        <br>
+                        <a href="http://' . $server_name . '/about/unsubscribe/">Отписаться от рассылки</a>
+                        <br>
+                        Информационная служба портала "Ланси"
+                        <br>
+                        Телефон для клиентов из России: +7 964 722-29-29
+                        <br>
+                        For partners from China WeChat ID: wxid_unzq1khzmp3b12';
+            $arFields['FOOTER'] = $footerText;
         }
 
     }
